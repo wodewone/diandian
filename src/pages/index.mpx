@@ -1,0 +1,133 @@
+<template>
+    <view class="container">
+        <view class="login-layer" wx:if="{{!hasUserInfo && canIUse}}">
+            <mp-loading wx:if="{{loading}}" type="circle" class="chart-loading"/>
+            <button wx:else open-type="getUserInfo" bindgetuserinfo="getUserInfo">登录发信息</button>
+        </view>
+        <view class="userinfo">
+            <block wx-if="userInfo.nickName">
+                <image bindtap="bindViewTap" class="userinfo-avatar" src="{{userInfo.avatarUrl}}" mode="cover"></image>
+                <text class="userinfo-nickname">{{userInfo.nickName}}</text>
+            </block>
+        </view>
+        <view class="section">
+            <textarea placeholder="发表祝福语……" />
+        </view>
+    </view>
+</template>
+
+<script>
+    import { createPage } from '@mpxjs/core'
+
+    const app = getApp()
+    createPage({
+        data: {
+            loading: true,
+            userInfo: {},
+            hasUserInfo: false,
+            canIUse: wx.canIUse('button.open-type.getUserInfo')
+        },
+        // 事件处理函数
+        bindViewTap: function () {
+            wx.navigateTo({
+                url: '../logs/logs'
+            })
+        },
+        onLoad: function () {
+            if (app.globalData.userInfo) {
+                this.setData({
+                    userInfo: app.globalData.userInfo,
+                    hasUserInfo: true,
+                    loading: false
+                })
+            } else if (this.data.canIUse) {
+                // 由于 getUserInfo 是网络请求，可能会在 Page.onLoad 之后才返回
+                // 所以此处加入 callback 以防止这种情况
+                app.userInfoReadyCallback = ({ userInfo }) => {
+                    this.setData({
+                        userInfo,
+                        loading: false,
+                        hasUserInfo: true
+                    })
+                }
+            } else {
+                // 在没有 open-type=getUserInfo 版本的兼容处理
+                wx.getUserInfo({
+                    success: ({ userInfo }) => {
+                        app.globalData.userInfo = userInfo
+                        this.setData({
+                            userInfo,
+                            loading: false,
+                            hasUserInfo: true
+                        })
+                    }
+                })
+            }
+        },
+        methods: {
+            getUserInfo (e) {
+                console.log('[log] getUserInfo: ', e)
+                app.globalData.userInfo = e.detail.userInfo
+                this.setData({
+                    userInfo: e.detail.userInfo,
+                    hasUserInfo: true
+                })
+            }
+        }
+    })
+</script>
+
+<style lang="scss">
+    .login-layer{
+        top: 0;
+        left: 0;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        position: absolute;
+        align-items: center;
+        justify-content: center;
+        background: rgba(#fff, .9);
+    }
+
+    .userinfo {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+
+        .userinfo-avatar {
+            width: 128px;
+            height: 128px;
+            margin: 20px;
+            border-radius: 50%;
+        }
+
+        .userinfo-nickname {
+            color: #aaa;
+        }
+    }
+
+    .section{
+        flex: 1;
+        padding: 20px;
+
+        textarea{
+            height: 100%;
+            width: 100%;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 0 5px rgba(#000, .15);
+            background: url("../images/body-bg.png");
+        }
+    }
+</style>
+
+<script type="application/json">
+    {
+        "usingComponents": {
+            "mp-loading": "weui-miniprogram/loading/loading"
+        },
+        "navigationBarTitleText": "Welcome!"
+    }
+</script>

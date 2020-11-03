@@ -1,0 +1,27 @@
+<template>
+    <view class="container">
+        <view class="userinfo">
+            <block>
+                <image class="userinfo-avatar" src="https://ww2.sinaimg.cn/mw690/5dfed263jw1e4nqoj9nbej205k05k74j.jpg" mode="cover"></image>
+                <text class="userinfo-nickname">{{userInfo.nickName}}</text>
+            </block>
+        </view>
+        <view class="usermotto">
+            <text class="user-motto">{{motto}}</text>
+        </view>
+    </view>
+</template>
+
+<script>
+    import { createPage } from '@mpxjs/core'
+
+    createPage({
+        data: {
+            motto: 'Hello World',
+            userInfo: {},
+            hasUserInfo: false,
+            canIUse: wx.canIUse('button.open-type.getUserInfo')
+        },
+        methods: {}
+    })
+</script>
