@@ -1,0 +1,84 @@
+<template>
+    <canvas type="2d" class="bgCanvas"></canvas>
+</template>
+
+<script>
+    import { createComponent } from '@mpxjs/core'
+    import Petal from './petal'
+
+    const hua = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACsAAAAyCAMAAADyWtKhAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAEFUExURUxpcfS4xvW0yPbG1O2OrfXR3fa9zf////+Rtv+/v/e/0Pi1w/+iufWzxvXJ2PbB0vbE0vjK3PbR3vbI1vTI2PfN2va90PO5yPW5yfbN2vTJ2Pa8zffK2fCgvvfD0vbZ4vfK1/a5zfPG2fOtxfbAz/i9y/W5yvXG1fTJ2Pa3yfTJ1/e+ze2FpvB9nvK5zfSxxe2Fo+yJqe2Nru2BnOd5lvOxyPSzyPW+0O6OrO1+oO+XtvCZufGgued3l/W2zO2Kq/CcufGqxPSxyu6Ste6duO+Ws/jM3ffL2/nP3vrS3/rV4ffH2fbC1vjI2vvc5/rY5PjT4PfE1/a3zva+0/Oqx/W60fWxzMKUW+4AAABGdFJOUwAtM5gT+V0BBwRkJAsbv4mQ6PGy/O59QlHT4ljM9qj9xHL3FndKa7nbOaeCgke+TFNxtzksspHRmmfF4oEgopCw4urW2aahUEXyAAADZ0lEQVR42oWW6VLiQBRGQbKCEEISlgjIJpuKouMy4+5oQsAYUOD9H2Vu3+6mTbnMV+UfPXycvre7ysRP0SSIpib+G1U6Hd/dHfw+1X7mtF+H4+c/V7Xa1cnB8Y36U+Hh+P6ptlyvl8van8vfv7RvK2+Or88e1m8k62Xt6fng8JtitQ3k4+r95X21IjAWn0pfoXqmfD5yXyAAQwAmxl9ZaEnl/MJcQAhM8ras/b0cH0qfLKRB8/aiFc5mM2BpCHxy99lie9AlaOhv2MXs5W1dQws9LpBRzkem7/tQzNFwgRYnB3ELNXu0P3JtYGntYjGbwedeVjiL8en2R9lSs963fY/VAjkLfQLDLB7ur48y+scRGA3H84DFWoZ6/uJ99fY4Ole2NGGwV6y7toe2wC4Q9SDko62L225J2sxgK51vtCZQO4OAK22l8Vv9s+ZRlp+uXerUKzZnkUR2AvF8m7J8tztGz4QKlIAgSVCEbXdULGf0zRpSVVDgaChagwB+bfb2d5DFk3VgYBMcA6JUlZDATpBNUlZPKvmcM2FsyFAsxXhOzlCSGlUoNVNVm7NUlZPY7DQMNmC1XYbhkr8Ci6HfLyJ69Yxi5JwgYGxMdo4BFnzpImAKBcFyXUSnkLmYg0QWISPLSOE7pawF81WJbqZsWOaE9SIpFBCVXatD96ZtKalGK9j0chZRylaGzZJEFbqowHoFi2gEP04uz46WLRctk7BBjKWyURRN5661v4cKenIHJiYH0zmT8DY3gZCvUSRXU90tjd8bUIAOYAHG4Big9RWyS6bQVvnV7ct4Bm5Mi6EW2UI1lWYLBt26iaxYBj0aq+0PO6X25ppbTsBZPwxDdCAn4wZ72c0DzucKXAHvbwi9vHa3kDPKWZWz6RiLxUwB0TxuV7zgAp0j6NJehOcRogpFhQNUROArnhCBp68yHYFg4Qk7wE45G7JnMY8Q3UZMzMH82IsGpDbWyt/w0N0Fls+MbQJul2iNHY712i2bLTiQK/U4ii+z1BxWoFiu5HpWz7WRnBca+XRGCMQmAbtM7ReL8PbR1WnklaQuIGFcBGPT6uyUu8gGsksWK9CYcapR6Rl7GVAnr6kAp0oK1Tg8UJpppZQl+64W5P6wOZDUxDfRdTVBX6kxtFLpQTvx36jbUrb9/T8X/wCwOUVzLMXqYgAAAABJRU5ErkJggg=='
+    const dpr = wx.getSystemInfoSync().pixelRatio
+
+    createComponent({
+        data: {
+            canvas: null,
+            state: {
+                cw: '0',
+                ch: '0',
+                n: 60,
+                len: 30
+            }
+        },
+        methods: {
+            setCanvas () {
+                return new Promise((resolve) => {
+                    wx.createSelectorQuery().in(this).select('.bgCanvas')
+                        .fields({ node: true, size: true })
+                        .exec(([{ node: canvas, width, height }]) => {
+                            const cw = canvas.width = width * dpr
+                            const ch = canvas.height = height * dpr
+                            this.setData({ state: { ...this.state, cw, ch }, canvas })
+                            resolve()
+                        })
+                })
+            },
+            async go (ctx, petal, index) {
+                const { canvas } = this
+                let w = this.state.cw
+                let h = this.state.ch
+                petal.canvasW = this.state.cw
+                petal.canvasH = this.state.ch
+                if (index === 0) {
+                    ctx.clearRect(0, 0, w, h)
+                }
+                await petal.move()
+                const img = canvas.createImage()
+                img.src = hua
+                petal.draw(ctx, img, 0.4 * dpr)
+                canvas.requestAnimationFrame(() => {
+                    this.go(ctx, petal, index)
+                })
+            },
+            async createPetal () {
+                const { canvas, state } = this
+                let ctx = canvas.getContext('2d')
+                const len = state.len
+                for (let i = 0; i < len; i++) {
+                    const petal = new Petal(canvas.width, canvas.height, 2)
+                    this.go(ctx, petal, i)
+                }
+            }
+        },
+        async ready () {
+            await this.setCanvas()
+            this.createPetal()
+        }
+    })
+</script>
+
+<style lang="scss">
+    .bgCanvas{
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        pointer-events: none;
+    }
+</style>
+
+<script type="application/json">
+    {
+        "component": true
+    }
+</script>

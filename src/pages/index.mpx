@@ -1,17 +1,24 @@
 <template>
-    <view class="container">
-        <view class="login-layer" wx:if="{{!hasUserInfo && canIUse}}">
-            <mp-loading wx:if="{{loading}}" type="circle" class="chart-loading"/>
-            <button wx:else open-type="getUserInfo" bindgetuserinfo="getUserInfo">登录发信息</button>
-        </view>
-        <view class="userinfo">
-            <block wx-if="userInfo.nickName">
-                <image bindtap="bindViewTap" class="userinfo-avatar" src="{{userInfo.avatarUrl}}" mode="cover"></image>
-                <text class="userinfo-nickname">{{userInfo.nickName}}</text>
-            </block>
-        </view>
-        <view class="section">
-            <textarea placeholder="发表祝福语……" />
+    <view class="page">
+        <include src="../components/template/header.wxml"></include>
+        <view class="container">
+            <view class="login-layer" wx:if="{{!hasUserInfo && canIUse || 0}}">
+                <view class="frame-box">
+                    <view class="frame-1"></view>
+                    <view class="frame-2"></view>
+                </view>
+                <mp-loading wx:if="{{loading}}" type="circle" class="chart-loading"/>
+                <button wx:else open-type="getUserInfo" bindgetuserinfo="getUserInfo">登录发信息</button>
+            </view>
+            <view class="userinfo">
+                <block wx-if="userInfo.nickName">
+                    <image bindtap="bindViewTap" class="userinfo-avatar" src="{{userInfo.avatarUrl}}" mode="cover"></image>
+                    <text class="userinfo-nickname">{{userInfo.nickName}}</text>
+                </block>
+            </view>
+            <view class="section">
+                <textarea placeholder="发表祝福语……" />
+            </view>
         </view>
     </view>
 </template>
@@ -91,6 +98,57 @@
         background: rgba(#fff, .9);
     }
 
+    .frame-box {
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        position: absolute;
+
+        .frame-1,
+        .frame-2 {
+            width: 0;
+            height: 0;
+
+            &:before,
+            &:after {
+                content: '';
+                width: 3px;
+                height: 88%;
+                bottom: -10%;
+                position: absolute;
+                display: inline-block;
+                background: linear-gradient(180deg, #f2e483, #f2e483, #996a17);
+            }
+
+            &:before {
+                left: 8vw;
+                transform: rotate(-15deg);
+            }
+
+            &:after {
+                right: 8vw;
+                transform: rotate(15deg);
+            }
+        }
+        .frame-2{
+            &:before,
+            &:after{
+                top: -10%;
+                background: linear-gradient(0, #f2e483, #f2e483, #996a17);
+            }
+
+            &:before {
+                transform: rotate(8deg);
+            }
+
+            &:after {
+                transform: rotate(-8deg);
+            }
+        }
+    }
+
     .userinfo {
         display: flex;
         align-items: center;
@@ -118,7 +176,7 @@
             border-radius: 5px;
             padding: 10px;
             box-shadow: 0 0 5px rgba(#000, .15);
-            background: url("../images/body-bg.png");
+            background: #fefefe;
         }
     }
 </style>
