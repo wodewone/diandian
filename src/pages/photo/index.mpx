@@ -112,11 +112,12 @@
         methods: {
             openLayer (img) {
                 if (!img.indexOf('http')) {
-                    this.setData({ layerShow: true, layerImg: img })
+                    this.layerShow = !this.layerShow
+                    this.layerImg = img
                 }
             },
             closeLayer () {
-                this.setData({ layerShow: false })
+                this.layerShow = !this.layerShow
             }
         },
         onReady () {
@@ -193,7 +194,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        z-index: 2;
+        z-index: 9;
         position: fixed;
         background-color: #000;
 

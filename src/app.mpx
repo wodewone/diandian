@@ -79,6 +79,7 @@
     .page-header{
         top: 0;
         left: 0;
+        z-index: 5;
         height: 150rpx;
         position: fixed;
         background: linear-gradient(0, transparent, #e8ebec, #e8ebec, #e8ebec);
@@ -93,8 +94,8 @@
 <script type="application/json">
     {
         "pages": [
-            "./pages/photo/index",
-            "./pages/index"
+            "./pages/index",
+            "./pages/photo/index"
         ],
         "tabBar": {
             "list": [
@@ -120,6 +121,11 @@
         "useExtendedLib": {
             "kbone": true,
             "weui": true
+        },
+        "permission": {
+            "scope.userLocation": {
+                "desc": "你的位置信息将用于计算位置距离"
+            }
         }
     }
 
