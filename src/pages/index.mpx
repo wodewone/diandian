@@ -1,54 +1,48 @@
 <template>
-    <view class="page">
-        <include src="../components/template/header.wxml"></include>
+    <view
+        class="page"
+    >
+        <view class="page-header" wx:style="{{headerStyle}}">
+            <view class="header-inner"></view>
+        </view>
         <view class="container">
             <view class="login-layer" wx:if="{{!hasUserInfo && canIUse || 0}}">
-                <view class="frame-box">
-                    <view class="frame-1"></view>
-                    <view class="frame-2"></view>
-                    <view class="frame-3"></view>
-                </view>
                 <mp-loading wx:if="{{loading}}" type="circle" class="chart-loading"/>
-                <button wx:else open-type="getUserInfo" bindgetuserinfo="getUserInfo">登录发信息</button>
-            </view>
-            <view class="user-info">
-                <view class="cover {{aniIndex === index ? 'flash' : ''}}" wx:key="index" wx:for="{{aniCoverList}}">
-                    <image src="{{item}}" mode="cover"></image>
-                    <text class="tips">开心每一天，开心开心~</text>
-                </view>
-                <block wx:if="{{!userInfo.nickName}}">
-                    <image class="userinfo-avatar" src="{{userInfo.avatarUrl}}" mode="cover"></image>
-                    <text class="userinfo-nickname">{{userInfo.nickName}}</text>
+                <block wx:else>
+                    <view class="card">
+                        <view class="frame-box">
+                            <view class="frame-1"></view>
+                            <view class="frame-2"></view>
+                            <view class="frame-3"></view>
+                        </view>
+                    </view>
+                    <button open-type="getUserInfo" bindgetuserinfo="getUserInfo">登录发信息</button>
                 </block>
+            </view>
+            <view class="first-page">
+                <view class="content">
+                    <view class="inner">
+                        <text>欢迎大家于2020年10月1日光临婚礼现场，届时将有更多惊喜等待大家</text>
+                    </view>
+                </view>
             </view>
             <view class="section">
                 <view class="line">
                     <view class="label">欢迎大家！</view>
-                    <view class="body line-video">
-                        <video
-                            src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-imgbed/5cd6dc0b-6be1-4eee-913c-345ff26ba550.mp4"
-                            poster="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-imgbed/81e9caf3-8e8c-49dd-8ca0-12709f4128a6.png"
-                            controls
-                            danmu-btn
-                            enable-danmu
-                            enable-play-gesture
-                            vslide-gesture
-                            danmu-list="{{danmakuList}}"
-                            object-fit="fill"
-                        ></video>
+                    <view class="body">
+                        <cover-list userInfo="{{userInfo}}"></cover-list>
                     </view>
                 </view>
                 <view class="line">
-                    <view class="label">发送祝福！</view>
-                    <view class="body danmu">
-                        <textarea placeholder="发表祝福语……"/>
-                        <button type="primary">发送弹幕祝福</button>
+                    <view class="label">我们的故事</view>
+                    <view class="body">
+                        <video-danmu></video-danmu>
                     </view>
                 </view>
                 <view class="line">
                     <view class="label">地图导航</view>
                     <view class="body">
-                        <map class="map" longitude="{{locationInfo.longitude}}" latitude="{{locationInfo.latitude}}" show-location></map>
+                        <index-map></index-map>
                     </view>
                 </view>
             </view>
@@ -62,99 +56,25 @@
     const app = getApp()
     createPage({
         data: {
+            pageHeight: null,
+            headerHeight: null,
             loading: true,
             userInfo: {},
             hasUserInfo: false,
             canIUse: wx.canIUse('button.open-type.getUserInfo'),
-            danmakuList: [],
-            locationInfo: {
-                longitude: null,
-                latitude: null
-            },
-            userMsgList: [
-                'https://hbimg.huabanimg.com/74e80c462a8d38c9cee3cd1e90222abc227243f845eac-H4NB6Y_fw658/format/webp',
-                'https://hbimg.huabanimg.com/0747707877f3f1687ac59b850507b73f934f7d952c10d-tvv9IO_fw658/format/webp',
-                'https://hbimg.huabanimg.com/a6336e9a5e416c285299544f9ebfbbf95c3bcffd1be738-Q2bUOM_fw658/format/webp',
-                'https://hbimg.huabanimg.com/244b2520ed2a609a0d3c6a16af5238cc257d3a893d253-mQKzw0_fw658/format/webp',
-                'https://hbimg.huabanimg.com/63fd1053564000344f222d10f962993d85fbbfa6ed91-uSfIyW_fw658/format/webp',
-                'https://hbimg.huabanimg.com/80311b37c58a2f5a888ae915270acbd550ef93ea19434-g054Ta_fw658/format/webp',
-                'https://hbimg.huabanimg.com/98a3f86e446f3c66d9d8c0ba44df04b3a35d806223d38-X765u1_fw658/format/webp',
-                'https://hbimg.huabanimg.com/e42ea2aa0829a2037635344769568500ff77b02f55b80-Dl6ZE6_fw658/format/webp',
-                'https://hbimg.huabanimg.com/aca5d963ef15cda3dc604ac499f533610574b2be25d31-bjGBHG_fw658/format/webp',
-                'https://hbimg.huabanimg.com/8e697f6160e671674a2532507a4f90f3de44e08e2859f-gnsCeH_fw658/format/webp',
-                'https://hbimg.huabanimg.com/3b27e8b24b2a3812f0b0a1fbe996c4a691588fe1226d8-ZJI1UY_fw658/format/webp',
-                'https://hbimg.huabanimg.com/68f40da259f3461ef53f46c2ed9799b566497fb45a02b-uvSY1S_fw658/format/webp',
-                'https://hbimg.huabanimg.com/ad3f2844f977fb02fa4e24717f7d9822fa956f0f134935-nM5fu6_fw658/format/webp',
-                'https://hbimg.huabanimg.com/a097b9b7dd74957141be5bfe609452899702f2fa28f28-yHOCOJ_fw658/format/webp',
-                'https://hbimg.huabanimg.com/5947439cba6b8213a6550fd4e53aee07fd67346910dbde-rMyuRi_fw658/format/webp',
-                'https://hbimg.huabanimg.com/9bd2e02d73a722b3cb0c0c8d423841c5ed4d44258010-k2S9XS_fw658/format/webp',
-                'https://hbimg.huabanimg.com/1da45faf4d4f7fe1b61e6ce40da545217921112d92540-O7w7XB_fw658/format/webp',
-                'https://hbimg.huabanimg.com/7fa33204678b99d144f2cb4ee0c3bd12e565b736749a7-Zf9Avp_fw658/format/webp',
-                'https://hbimg.huabanimg.com/035af22b639f3ce6c272630b342fe15601c2c48c7bed8-aZX9dI_fw658/format/webp',
-                'https://hbimg.huabanimg.com/c9f13a73ecf3d9268779858e7d5059f412b5fbdf84978-jBW5cS_fw658/format/webp',
-                'https://hbimg.huabanimg.com/94f8db6f31e1dfb0d56ae2d6842c443b5d8f965b32097-3q0Lrv_fw658/format/webp',
-                'https://hbimg.huabanimg.com/f44c647a4409b4a0537616bc08fcbb1a43870671ae3c-ltWowp_fw658/format/webp',
-                'https://hbimg.huabanimg.com/9044365c97c0e7a723878d876859937e1fd7e9851dedaa-zFRLDP_fw658/format/webp',
-                'https://hbimg.huabanimg.com/59407f7cc74b31ba3d002329320b8297b2506aef147b8-UqG3G3_fw658/format/webp',
-                'https://hbimg.huabanimg.com/2333beca6db88c843d989d7a484ca7e6f7937bb4a4e1a-k7lNqL_fw658/format/webp',
-                'https://hbimg.huabanimg.com/8fab91852f6e13f985eeb013b0dab734993cf2026caf3-dvagv6_fw658/format/webp',
-                'https://hbimg.huabanimg.com/082ea511d1f5e8a0225bf933ccd8b0ce17748c429d0e4-iBhoUB_fw658/format/webp',
-                'https://hbimg.huabanimg.com/c734b9a21d3d89b8ff737acb581b6033e1429c2e1bfc3-YaouZt_fw658/format/webp',
-                'https://hbimg.huabanimg.com/b950c2e92ec9289c135dd7b66437fd6ab29ab810bc518-bZ5R3W_fw658/format/webp',
-                'https://hbimg.huabanimg.com/c5c36b92503bc4ffe4eafb0dd68a889c6d351326b3e67-D6DkEY_fw658/format/webp',
-                'https://hbimg.huabanimg.com/f70a66e28e9508dee7d347c2a8447c116c7d611c34618-7XvHRG_fw658/format/webp',
-                'https://hbimg.huabanimg.com/430338767b02b4259fcb4a6bb1c42d005922d50a72021-8Zk4qJ_fw658/format/webp',
-                'https://hbimg.huabanimg.com/58ef717aa0716c61247254e2ca673d4c838b02e63999a-qhx8pG_fw658/format/webp',
-                'https://hbimg.huabanimg.com/48e2780b1da285780c5ed5b2d1e05ae5ca539f1237d40-YHQ4GF_fw658/format/webp',
-                'https://hbimg.huabanimg.com/fd791ddd8dba1e8c08e47fb83b48e24281d67b2f18039-UKuO7m_fw658/format/webp',
-                'https://hbimg.huabanimg.com/648f0a1aebd667c2fecd8a0bdc82084ebfff5f715ccc5-XBhEtL_fw658/format/webp',
-                'https://hbimg.huabanimg.com/a6ca198a186429b7afa4f6091e38c189b88cd72a5b6f1-44l3YZ_fw658/format/webp',
-                'https://hbimg.huabanimg.com/cf8e857859b5391819131c9b3893baf2780f75b3bfbea-pyc5s7_fw658/format/webp',
-                'https://hbimg.huabanimg.com/f7fb573b3983bb116fdb26a9eac09b4e1daf85ba1c905-0bYa8V_fw658/format/webp',
-                'https://hbimg.huabanimg.com/80e872f712c4a57e7e6ff95316c6261d02d19b6110f7b-4u5ilO_fw658/format/webp',
-                'https://hbimg.huabanimg.com/4c1387a5d51341f93bf58023e8c73b586bed18883f82f-sqBSLJ_fw658/format/webp'
-            ],
-            aniCoverList: [],
-            aniIndex: -1
-        },
-        computed: {
+            headerStyle: { 'transform': `translateY(-100%)` }
         },
         methods: {
-            random (min, max) {
-                return Math.floor(Math.random() * (max - min) + min)
-            },
-            putAniCover () {
-                setTimeout(() => {
-                    this.aniIndex = this.random(0, this.aniCoverList.length)
-                    this.putAniCover()
-                }, this.random(2000, 3000))
-            },
-            getAniCover () {
-                return new Promise((resolve) => {
-                    setTimeout(() => {
-                        resolve(this.userMsgList.splice(0, 1))
-                    }, 50)
-                })
-            },
-            async setAniCover () {
-                if (this.userMsgList.length) {
-                    const item = await this.getAniCover()
-                    this.aniCoverList.push(item)
-                    this.setAniCover()
+            pageScroll ({ detail: { scrollTop } }) {
+                const { pageHeight, headerHeight } = this
+                const h = scrollTop - pageHeight + headerHeight
+                let percent = Math.floor(h / headerHeight * 100)
+                if (h > 0) {
+                    percent = Math.min(percent, 100)
+                } else {
+                    percent = Math.max(percent, -100)
                 }
-            },
-            getLocation () {
-                wx.getLocation({
-                    type: 'gcj02',
-                    isHighAccuracy: true,
-                    success: (res) => {
-                        console.info(11, res)
-                        const { longitude, latitude } = res
-                        // wx.openLocation({ longitude, latitude })
-                        this.locationInfo = { longitude, latitude }
-                        wx.showToast({ title: `${longitude},${latitude}`, icon: 'none', duration: 1000 })
-                    }
-                })
+                this.headerStyle.transform = `translateY(-${100 - percent}%)`
             },
             getUserInfo (e) {
                 console.log('[log] getUserInfo: ', e)
@@ -165,13 +85,10 @@
                 })
             }
         },
-        watch: {
-            userMsgList (l) {
-                !l.length && this.putAniCover()
-            }
+        onPageScroll (data) {
+            this.pageScroll({ detail: data })
         },
         onLoad () {
-            this.getLocation()
             if (app.globalData.userInfo) {
                 this.setData({
                     userInfo: app.globalData.userInfo,
@@ -203,103 +120,101 @@
             }
         },
         onReady () {
-            this.setAniCover()
+            wx.createSelectorQuery().select('.page').boundingClientRect().exec(([{ height }]) => {
+                this.pageHeight = height
+            })
+            wx.createSelectorQuery().select('.page-header').boundingClientRect().exec(([{ height }]) => {
+                this.headerHeight = height
+            })
         }
     })
 </script>
 
 <style lang="scss">
+    .page{
+        height: 100vh;
+    }
+    .page, .first-page .inner:before {
+        background: url("../images/card-invite-back.jpg") no-repeat center/cover fixed;
+    }
+    .container{
+        padding-top: 0;
+    }
     .login-layer {
         top: 0;
         left: 0;
-        z-index: 2;
+        z-index: 9;
         width: 100%;
         height: 100%;
         display: flex;
         position: absolute;
         align-items: center;
         justify-content: center;
-        background: rgba(#fff, .9);
+        background: rgba(#eee, .99);
     }
 
-    .user-info {
-        margin-top: 10px;
-        display: flex;
-        flex-wrap: wrap;
-        padding: 10px 20px;
+    .first-page {
+        height: 100vh;
+        position: relative;
 
-        .cover {
-            width: 26px;
-            height: 26px;
-            min-width: 20px;
-            margin: 0 5px 10px;
-            border-radius: 50%;
+        .content {
+            z-index: 1;
+            height: 100%;
             position: relative;
-            animation: ani-cover ease-in 1s;
 
-            &.flash {
-                image{
-                    z-index: 1;
-                    transform: scale(1.2);
-                    animation: ani-img ease-in 1s;
-                }
-                .tips{
-                    opacity: 1;
-                    bottom: 140%;
-                    transition: all linear .3s;
-                }
-            }
-
-            image {
+            &:before, &:after {
+                content: '';
+                top: 0;
+                left: 0;
+                z-index: 3;
                 width: 100%;
                 height: 100%;
-                border-radius: 50%;
-                position: relative;
-                transition: transform linear .3s;
-                border: 2px solid rgba(#000, 0.6);
-                box-shadow: 0 0 3px rgba(#000, 0.5), 0 0 3px rgba(#000, 0.5);
-            }
-        }
-
-        .tips{
-            opacity: 0;
-            left: 50%;
-            bottom: 100%;
-            padding: 5px;
-            font-size: 7px;
-            background: #fff;
-            white-space: nowrap;
-            position: absolute;
-            border-radius: 5px;
-            transform: translateX(-50%);
-            filter: drop-shadow(0 0 2px rgba(#000, .3));
-
-            &:after{
-                content: '';
-                left: 50%;
-                bottom: -8px;
                 position: absolute;
-                transform: translateX(-50%);
-                border: 4px solid transparent;
-                border-top-color: #fff;
             }
-        }
 
-        .userinfo-avatar {
-            width: 60px;
-            height: 60px;
-            margin: 20px;
-            border-radius: 50%;
-        }
+            &:before {
+                //background: url("../images/card-invite-head.png") no-repeat top center/100% auto;
+            }
 
-        .userinfo-nickname {
-            color: #aaa;
+            &:after {
+                //background: url("../images/card-invite-foot.png") no-repeat bottom center/100% auto;
+            }
+
+            .inner {
+                width: 80%;
+                left: 10%;
+                bottom: 50px;
+                padding: 10px;
+                overflow: hidden;
+                border-radius: 20px;
+                position: absolute;
+                box-shadow: 0 0 0 1px rgba(#fff, .3) inset, 0 2px 5px rgba(0, 0, 0, 0.6);
+
+                text{
+                    color: #ff8dac;
+                    font-size: 16px;
+                    text-align: center;
+                    text-shadow: 0 0 2px #e03a0d;
+                }
+
+                &:before {
+                    content: '';
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    z-index: -1;
+                    margin: -10px;
+                    position: absolute;
+                    filter: blur(10px);
+                }
+            }
         }
     }
 
     .section {
-        flex: 1;
         padding: 20px;
+        background: #fff;
 
         .line {
             + .line {
@@ -317,153 +232,120 @@
             .body {
             }
         }
-
-        .danmu {
-            textarea {
-                width: 100%;
-                padding: 10px;
-                background: #fefefe;
-                border-radius: 5px;
-                box-shadow: 0 0 5px rgba(#000, .15);
-            }
-
-            button {
-                width: 100%;
-                margin-top: 20px;
-            }
-        }
-
-        .line-video {
-            overflow: hidden;
-            border-radius: 5px;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5), 0 0 5px rgba(0, 0, 0, 0.5);
-
-            video {
-                width: 100%;
-                vertical-align: middle;
-            }
-        }
-
-        .map {
-            width: 100%;
-            height: 220px;
-            overflow: hidden;
-            border-radius: 5px;
-        }
     }
 
-    .frame-box {
+    .card {
         top: 0;
         left: 0;
-        z-index: 0;
         width: 100%;
         height: 100%;
-        overflow: hidden;
         position: absolute;
+        background: #fff;
 
-        .frame-1,
-        .frame-2,
-        .frame-3 {
-            width: 0;
-            height: 0;
+        .frame-box {
+            top: 0;
+            left: 0;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: absolute;
 
-            &:before,
-            &:after {
-                content: '';
-                width: 3px;
-                height: 88%;
-                bottom: -10%;
-                position: absolute;
-                display: inline-block;
-                background: linear-gradient(180deg, #f2e483, #f2e483, #996a17);
+            .frame-1,
+            .frame-2,
+            .frame-3 {
+                width: 0;
+                height: 0;
+
+                &:before,
+                &:after {
+                    content: '';
+                    width: 3px;
+                    height: 88%;
+                    bottom: -10%;
+                    position: absolute;
+                    display: inline-block;
+                    background: linear-gradient(180deg, #f2e483, #f2e483, #996a17);
+                }
+
+                &:before {
+                    left: 8vw;
+                }
+
+                &:after {
+                    right: 8vw;
+                }
             }
 
-            &:before {
-                left: 8vw;
+            .frame-1 {
+                &:before {
+                    bottom: 2vh;
+                    height: 35%;
+                    transform: rotate(-17deg);
+                }
+
+                &:after {
+                    right: 22vw;
+                    height: 47vw;
+                    bottom: -18vw;
+                    transform: rotate(253deg);
+                }
             }
 
-            &:after {
-                right: 8vw;
-            }
-        }
+            .frame-2 {
+                &:before,
+                &:after {
+                    top: -10%;
+                    bottom: auto;
+                    background: linear-gradient(0, #f2e483, #f2e483, #996a17);
+                }
 
-        .frame-1 {
-            &:before {
-                bottom: 2vh;
-                height: 35%;
-                transform: rotate(-17deg);
-            }
+                &:before {
+                    top: 0;
+                    bottom: auto;
+                    height: 100%;
+                    transform: rotate(6deg);
+                    background: linear-gradient(0, #996a17, #f2e483, #f2e483, #996a17);
+                }
 
-            &:after {
-                right: 22vw;
-                height: 47vw;
-                bottom: -18vw;
-                transform: rotate(253deg);
-            }
-        }
-
-        .frame-2 {
-            &:before,
-            &:after {
-                top: -10%;
-                bottom: auto;
-                background: linear-gradient(0, #f2e483, #f2e483, #996a17);
+                &:after {
+                    top: 0;
+                    right: 12%;
+                    height: 100%;
+                    transform: rotate(-3deg);
+                }
             }
 
-            &:before {
-                top: 0;
-                bottom: auto;
-                height: 100%;
-                transform: rotate(6deg);
-                background: linear-gradient(0, #996a17, #f2e483, #f2e483, #996a17);
-            }
+            .frame-3 {
+                &:before,
+                &:after {
+                    background: linear-gradient(0, #f2e483, #996a17);
+                }
 
-            &:after {
-                top: 0;
-                right: 12%;
-                height: 100%;
-                transform: rotate(-3deg);
-            }
-        }
+                &:before {
+                    height: 11%;
+                    bottom: -28px;
+                    transform: rotate(-106deg);
+                }
 
-        .frame-3 {
-            &:before,
-            &:after {
-                background: linear-gradient(0, #f2e483, #996a17);
-            }
-
-            &:before {
-                height: 11%;
-                bottom: -28px;
-                transform: rotate(-106deg);
-            }
-
-            &:after {
-                height: 60vw;
-                right: 38vw;
-                bottom: 2vh;
-                transform: rotate(125deg);
+                &:after {
+                    height: 60vw;
+                    right: 38vw;
+                    bottom: 2vh;
+                    transform: rotate(125deg);
+                }
             }
         }
     }
 
-    @keyframes ani-cover {
-        0% {transform: scale(0.6)}
-        80% {transform: scale(1.2)}
-        100% {transform: scale(1)}
-    }
-    @keyframes ani-img {
-        0% {transform: scale(1)}
-        60% {transform: scale(1.6)}
-        80% {transform: scale(1.2) rotate(-36deg)}
-        90% {transform: scale(1.2) rotate(36deg)}
-        100% {transform: scale(1.2) rotate(0)}
-    }
 </style>
 
 <script type="application/json">
     {
         "usingComponents": {
+            "cover-list": "../components/first/CoverList",
+            "video-danmu": "../components/first/VideoDanmu",
+            "index-map": "../components/first/IndexMap",
             "mp-loading": "weui-miniprogram/loading/loading"
         },
         "navigationBarTitleText": "Welcome!"

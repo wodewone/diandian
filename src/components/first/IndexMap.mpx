@@ -1,0 +1,88 @@
+<template>
+    <map
+        class="index-map"
+        bindtap="mapEvent"
+        show-location
+        enable-scroll="{{false}}"
+        longitude="{{mapMarket.longitude}}"
+        latitude="{{mapMarket.latitude}}"
+        markers="{{mapMarkets}}"
+    ></map>
+</template>
+
+<script>
+    import { createPage } from '@mpxjs/core'
+
+    createPage({
+        data: {
+            locationInfo: {
+                longitude: null,
+                latitude: null
+            },
+            mapMarket: {
+                id: 0,
+                latitude: 38.580205305181586,
+                longitude: 116.85037806592959,
+                callout: {
+                    content: '导航地点',
+                    bgColor: '#fff',
+                    borderRadius: 5,
+                    borderWidth: 1,
+                    borderColor: '#ddd',
+                    padding: 10,
+                    display: 'ALWAYS',
+                    textAlign: 'center'
+                }
+            }
+        },
+        computed: {
+            mapLocations () {
+                if (!this.locationInfo.longitude) {
+                    return []
+                }
+                const { latitude, longitude } = this.mapMarket
+                return [...this.locationInfo, latitude, longitude]
+            },
+            mapMarkets () {
+                return [this.mapMarket]
+            }
+        },
+        methods: {
+            getLocation () {
+                wx.getLocation({
+                    type: 'gcj02',
+                    isHighAccuracy: true,
+                    success: ({ longitude, latitude }) => {
+                        this.locationInfo = { longitude, latitude }
+                        // wx.showToast({ title: `${longitude},${latitude}`, icon: 'none', duration: 1000 })
+                    }
+                })
+            },
+            mapEvent (res) {
+                console.info('Map event: ', res)
+                wx.showLoading({ title: '加载中' })
+                const { longitude, latitude } = this.mapMarket
+                wx.openLocation({ longitude, latitude, name: '东方丽都小区南门', address: '沧州市青县东方丽都小区' })
+                setTimeout(wx.hideLoading, 1000)
+            }
+        },
+        created () {
+            this.getLocation()
+        }
+    })
+</script>
+
+<style lang="scss">
+    .index-map {
+        width: 100%;
+        height: 220px;
+        overflow: hidden;
+        border-radius: 5px;
+    }
+</style>
+
+<script type="application/json">
+    {
+        "component": true
+    }
+</script>

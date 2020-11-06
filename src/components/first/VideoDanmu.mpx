@@ -1,0 +1,68 @@
+<template>
+    <video
+        id="video"
+        class="line-video"
+        src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-imgbed/5cd6dc0b-6be1-4eee-913c-345ff26ba550.mp4"
+        poster="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-imgbed/81e9caf3-8e8c-49dd-8ca0-12709f4128a6.png"
+        controls
+        danmu-btn
+        enable-danmu
+        enable-play-gesture
+        vslide-gesture
+        danmu-list="{{danmakuList}}"
+        object-fit="fill"
+    ></video>
+    <view class="danmu">
+        <textarea class="textarea" placeholder="最多十个字……" maxlength="10"/>
+        <button class="btn" type="primary">发送弹幕祝福</button>
+    </view>
+</template>
+
+<script>
+    import { createPage } from '@mpxjs/core'
+
+    createPage({
+        data: {
+            danmakuList: [],
+            videoCtx: null
+        },
+        ready () {
+            this.videoCtx = wx.createVideoContext('video')
+            console.info(this.videoCtx)
+        }
+    })
+</script>
+
+<style lang="scss">
+    .danmu {
+        margin-top: 20px;
+
+        .textarea {
+            width: 100%;
+            padding: 10px;
+            height: 60px;
+            background: #fefefe;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(#000, .15);
+        }
+
+        .btn {
+            width: 100%;
+            margin-top: 20px;
+        }
+    }
+
+    .line-video {
+        width: 100%;
+        overflow: hidden;
+        border-radius: 5px;
+        vertical-align: middle;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    }
+</style>
+
+<script type="application/json">
+    {
+        "component": true
+    }
+</script>
