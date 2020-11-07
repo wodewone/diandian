@@ -8,12 +8,13 @@
         latitude="{{mapMarket.latitude}}"
         markers="{{mapMarkets}}"
     ></map>
+    <text class="warning">* 点击地图可以打开导航</text>
 </template>
 
 <script>
-    import { createPage } from '@mpxjs/core'
+    import { createComponent } from '@mpxjs/core'
 
-    createPage({
+    createComponent({
         data: {
             locationInfo: {
                 longitude: null,
@@ -78,6 +79,11 @@
         height: 220px;
         overflow: hidden;
         border-radius: 5px;
+    }
+    .warning{
+        font-size: 10px;
+        line-height: 20px;
+        color: #aaa;
     }
 </style>
 

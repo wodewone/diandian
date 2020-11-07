@@ -1,32 +1,31 @@
-<template>
-    <view class="user-info">
-        <view
-            class="cover {{aniIndex === index ? 'flash' : ''}}"
-            wx:key="index"
-            wx:for="{{aniCoverList}}"
-            bindtap="coverEvent(index)"
-        >
-            <image class="img" src="{{item}}" mode="cover"></image>
-            <text class="tips">开心每一天，开心开心~</text>
+<template xmlns:wx="http://www.w3.org/1999/xhtml">
+    <view class="cover-wrap">
+        <view class="user-info">
+            <view
+                class="cover {{aniIndex === index ? 'flash' : ''}}"
+                wx:key="index"
+                wx:for="{{aniCoverList}}"
+                bindtap="coverEvent(index)"
+            >
+                <image class="img" src="{{item}}" mode="cover"></image>
+                <text class="tips">开心每一天，开心开心~</text>
+            </view>
         </view>
-        <block wx:if="{{!userInfo.nickName}}">
-            <image class="userinfo-avatar" src="{{userInfo.avatarUrl}}" mode="cover"></image>
-            <text class="userinfo-nickname">{{userInfo.nickName}}</text>
-        </block>
+        <view class="blessing" wx:if="{{userInfo.nickName}}">
+            <image class="user-avatar" src="{{userInfo.avatarUrl}}" mode="cover"></image>
+            <input class="input" type="text" placeholder="祝福语，最多10个字" maxlength="10" wx:model="{{blessValue}}"/>
+            <button class="btn" type="primary" bindtap="send" disabled="{{!blessValue}}">祝福</button>
+        </view>
     </view>
 </template>
 
 <script>
-    import { createPage } from '@mpxjs/core'
+    import { createComponent } from '@mpxjs/core'
 
-    createPage({
+    const app = getApp()
+    createComponent({
         properties: {
-            userInfo: {
-                type: Object,
-                value () {
-                    return {}
-                }
-            }
+            userInfo: Object
         },
         data: {
             userMsgList: [
@@ -73,7 +72,8 @@
                 'https://hbimg.huabanimg.com/4c1387a5d51341f93bf58023e8c73b586bed18883f82f-sqBSLJ_fw658/format/webp'
             ],
             aniCoverList: [],
-            aniIndex: -1
+            aniIndex: -1,
+            blessValue: null
         },
         computed: {
             mapLocations () {
@@ -124,12 +124,47 @@
         },
         ready () {
             this.setAniCover()
-            console.info(this.userInfo)
+            console.info('user info', this.userInfo, app.globalData.userInfo)
         }
     })
 </script>
 
 <style lang="scss">
+    .cover-wrap {
+        .blessing {
+            display: flex;
+            margin-top: 15px;
+            align-items: center;
+
+            .user-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                margin-right: 10px;
+            }
+
+            .input {
+                flex: 1;
+                height: 30px;
+                font-size: 12px;
+                padding: 5px 10px;
+                line-height: 20px;
+                border-radius: 2px;
+                background: #eef3f4;
+                border: 1px solid #cfd1d6;
+            }
+
+            .btn {
+                width: 60px;
+                height: 30px;
+                font-size: 12px;
+                margin-left: 10px;
+                padding: 0 5px;
+                line-height: 30px;
+            }
+        }
+    }
+
     .user-info {
         display: flex;
         flex-wrap: wrap;

@@ -1,7 +1,5 @@
 <template>
-    <view
-        class="page"
-    >
+    <view class="page {{loading ? 'no-login' : ''}}">
         <view class="page-header" wx:style="{{headerStyle}}">
             <view class="header-inner"></view>
         </view>
@@ -96,12 +94,13 @@
                     loading: false
                 })
             } else if (this.data.canIUse) {
+                this.loading = false
                 // 由于 getUserInfo 是网络请求，可能会在 Page.onLoad 之后才返回
                 // 所以此处加入 callback 以防止这种情况
                 app.userInfoReadyCallback = ({ userInfo }) => {
+                    app.globalData.userInfo = userInfo
                     this.setData({
                         userInfo,
-                        loading: false,
                         hasUserInfo: true
                     })
                 }
@@ -131,15 +130,22 @@
 </script>
 
 <style lang="scss">
-    .page{
+    .page {
         height: 100vh;
+
+        &.no-login {
+            overflow: hidden;
+        }
     }
+
     .page, .first-page .inner:before {
         background: url("../images/card-invite-back.jpg") no-repeat center/cover fixed;
     }
-    .container{
+
+    .container {
         padding-top: 0;
     }
+
     .login-layer {
         top: 0;
         left: 0;
@@ -147,7 +153,7 @@
         width: 100%;
         height: 100%;
         display: flex;
-        position: absolute;
+        position: fixed;
         align-items: center;
         justify-content: center;
         background: rgba(#eee, .99);
@@ -190,7 +196,7 @@
                 position: absolute;
                 box-shadow: 0 0 0 1px rgba(#fff, .3) inset, 0 2px 5px rgba(0, 0, 0, 0.6);
 
-                text{
+                text {
                     color: #ff8dac;
                     font-size: 16px;
                     text-align: center;
@@ -250,6 +256,7 @@
             height: 100%;
             overflow: hidden;
             position: absolute;
+            pointer-events: none;
 
             .frame-1,
             .frame-2,

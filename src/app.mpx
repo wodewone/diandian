@@ -23,10 +23,12 @@
             // 获取用户信息
             wx.getSetting({
                 success: res => {
+                    // console.info('wx.getSetting ', res)
                     if (res.authSetting['scope.userInfo']) {
                         // 已经授权，可以直接调用 getUserInfo 获取头像昵称，不会弹框
                         wx.getUserInfo({
                             success: res => {
+                                // console.info('wx.getUserInfo ', res)
                                 // 可以将 res 发送给后台解码出 unionId
                                 this.globalData.userInfo = res.userInfo
 
@@ -45,15 +47,20 @@
 </script>
 
 <style lang="scss">
-    page, view, button, text, textarea, image, video {
+    page, view, button, text, textarea, image, video, input {
         box-sizing: border-box;
     }
 
-    button, text, textarea {
+    button, text, textarea, input {
         color: #3a3636;
         font-size: 14px;
         line-height: 1.5;
+        font-weight: normal;
         font-family: robotoregular, PingFang SC, Hiragino Sans GB, Heiti SC, Microsoft YaHei, WenQuanYi Micro Hei, Helvetica, Arial, monospace, serif;
+    }
+
+    button.btn[disabled] {
+        background: #bbcac5;
     }
 
     page {

@@ -9,26 +9,39 @@
         enable-danmu
         enable-play-gesture
         vslide-gesture
+        bindtimeupdate="playProgressEvent"
         danmu-list="{{danmakuList}}"
         object-fit="fill"
     ></video>
     <view class="danmu">
-        <textarea class="textarea" placeholder="最多十个字……" maxlength="10"/>
-        <button class="btn" type="primary">发送弹幕祝福</button>
+        <textarea class="textarea" placeholder="20字以内……" maxlength="20" wx:model="{{danmu}}"/>
+        <button class="btn" type="primary" bindtap="sendDanmu" disabled="{{!danmu}}">发送弹幕</button>
     </view>
 </template>
 
 <script>
-    import { createPage } from '@mpxjs/core'
+    import { createComponent } from '@mpxjs/core'
 
-    createPage({
+    createComponent({
         data: {
+            danmu: null,
             danmakuList: [],
-            videoCtx: null
+            videoCtx: null,
+            videoPlayTime: 0
+        },
+        methods: {
+            playProgressEvent ({ detail: { currentTime } }) {
+                this.videoPlayTime = currentTime
+            },
+            sendDanmu () {
+                const { danmu: text, videoPlayTime } = this
+                const time = Math.ceil(videoPlayTime)
+                this.danmakuList.push({ text, time })
+                this.danmu = null
+            }
         },
         ready () {
             this.videoCtx = wx.createVideoContext('video')
-            console.info(this.videoCtx)
         }
     })
 </script>
@@ -41,9 +54,9 @@
             width: 100%;
             padding: 10px;
             height: 60px;
-            background: #fefefe;
-            border-radius: 5px;
-            box-shadow: 0 0 5px rgba(#000, .15);
+            border-radius: 2px;
+            background: #eef3f4;
+            border: 1px solid #cfd1d6;
         }
 
         .btn {
