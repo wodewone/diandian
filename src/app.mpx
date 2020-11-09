@@ -59,7 +59,7 @@
         font-family: robotoregular, PingFang SC, Hiragino Sans GB, Heiti SC, Microsoft YaHei, WenQuanYi Micro Hei, Helvetica, Arial, monospace, serif;
     }
 
-    button.btn[disabled] {
+    button[disabled][type] {
         background: #bbcac5;
     }
 
