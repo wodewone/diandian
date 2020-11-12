@@ -92,7 +92,7 @@
         z-index: 5;
         height: 90px;
         position: fixed;
-        background: linear-gradient(0, transparent, #e8ebec, #e8ebec, #e8ebec);
+        background: linear-gradient(0, transparent, #e8ebec, #e8ebec);
 
         .header-inner {
             width: 100%;

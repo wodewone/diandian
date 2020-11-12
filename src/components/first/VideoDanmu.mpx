@@ -11,7 +11,7 @@
         vslide-gesture
         bindtimeupdate="playProgressEvent"
         danmu-list="{{danmakuList}}"
-        object-fit="fill"
+        object-fit="contain"
     ></video>
     <view class="danmu">
         <textarea class="textarea" placeholder="20字以内……" maxlength="20" wx:model="{{danmu}}"/>
