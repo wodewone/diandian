@@ -1,48 +1,15 @@
 <template>
     <view class="page {{loading ? 'no-login' : ''}}">
-        <view class="page-header" wx:style="{{headerStyle}}">
-            <view class="header-inner"></view>
-        </view>
         <view class="container">
-            <view class="login-layer" wx:if="{{!hasUserInfo && canIUse || 0}}">
-                <mp-loading wx:if="{{loading}}" type="circle" class="chart-loading"/>
-                <block wx:else>
-                    <view class="card">
-                        <view class="frame-box">
-                            <view class="frame-1"></view>
-                            <view class="frame-2"></view>
-                            <view class="frame-3"></view>
-                        </view>
-                    </view>
-                    <button open-type="getUserInfo" bindgetuserinfo="getUserInfo">登录发信息</button>
-                </block>
-            </view>
-            <view class="first-page">
-                <view class="content">
-                    <view class="inner">
-                        <text>欢迎大家于2020年10月1日光临婚礼现场，届时将有更多惊喜等待大家</text>
+            <view class="login-layer">
+                <view class="card">
+                    <view class="frame-box">
+                        <view class="frame-1"></view>
+                        <view class="frame-2"></view>
+                        <view class="frame-3"></view>
                     </view>
                 </view>
-            </view>
-            <view class="section">
-                <view class="line">
-                    <view class="label">欢迎大家！</view>
-                    <view class="body">
-                        <cover-list userInfo="{{userInfo}}"></cover-list>
-                    </view>
-                </view>
-                <view class="line">
-                    <view class="label">我们的故事</view>
-                    <view class="body">
-                        <video-danmu></video-danmu>
-                    </view>
-                </view>
-                <view class="line">
-                    <view class="label">地图导航</view>
-                    <view class="body">
-                        <index-map></index-map>
-                    </view>
-                </view>
+                <button open-type="getUserInfo" bindgetuserinfo="getUserInfo">登录发信息</button>
             </view>
         </view>
     </view>
@@ -51,80 +18,11 @@
 <script>
     import { createPage } from '@mpxjs/core'
 
-    const app = getApp()
+    // const app = getApp()
     createPage({
         data: {
-            pageHeight: null,
-            headerHeight: null,
-            loading: true,
-            userInfo: {},
-            hasUserInfo: false,
-            canIUse: wx.canIUse('button.open-type.getUserInfo'),
-            headerStyle: { 'transform': `translateY(-100%)` }
         },
         methods: {
-            pageScroll ({ detail: { scrollTop } }) {
-                const { pageHeight, headerHeight } = this
-                const h = scrollTop - pageHeight + headerHeight
-                let percent = Math.floor(h / headerHeight * 100)
-                if (h > 0) {
-                    percent = Math.min(percent, 100)
-                } else {
-                    percent = Math.max(percent, -100)
-                }
-                this.headerStyle.transform = `translateY(-${100 - percent}%)`
-            },
-            getUserInfo (e) {
-                console.log('[log] getUserInfo: ', e)
-                app.globalData.userInfo = e.detail.userInfo
-                this.setData({
-                    userInfo: e.detail.userInfo,
-                    hasUserInfo: true
-                })
-            }
-        },
-        onPageScroll (data) {
-            this.pageScroll({ detail: data })
-        },
-        onLoad () {
-            if (app.globalData.userInfo) {
-                this.setData({
-                    userInfo: app.globalData.userInfo,
-                    hasUserInfo: true,
-                    loading: false
-                })
-            } else if (this.data.canIUse) {
-                this.loading = false
-                // 由于 getUserInfo 是网络请求，可能会在 Page.onLoad 之后才返回
-                // 所以此处加入 callback 以防止这种情况
-                app.userInfoReadyCallback = ({ userInfo }) => {
-                    app.globalData.userInfo = userInfo
-                    this.setData({
-                        userInfo,
-                        hasUserInfo: true
-                    })
-                }
-            } else {
-                // 在没有 open-type=getUserInfo 版本的兼容处理
-                wx.getUserInfo({
-                    success: ({ userInfo }) => {
-                        app.globalData.userInfo = userInfo
-                        this.setData({
-                            userInfo,
-                            loading: false,
-                            hasUserInfo: true
-                        })
-                    }
-                })
-            }
-        },
-        onReady () {
-            wx.createSelectorQuery().select('.page').boundingClientRect().exec(([{ height }]) => {
-                this.pageHeight = height
-            })
-            wx.createSelectorQuery().select('.page-header').boundingClientRect().exec(([{ height }]) => {
-                this.headerHeight = height
-            })
         }
     })
 </script>
@@ -138,10 +36,6 @@
         }
     }
 
-    .container {
-        padding-top: 0;
-    }
-
     .login-layer {
         top: 0;
         left: 0;
@@ -153,99 +47,6 @@
         align-items: center;
         justify-content: center;
         background: rgba(#eee, .99);
-    }
-
-    .first-page {
-        height: 100vh;
-        overflow: hidden;
-        position: relative;
-
-        &:before {
-            content: '';
-            top: 0;
-            left: 0;
-            z-index: -1;
-            width: 100%;
-            height: 100%;
-            position: fixed;
-            display: inline-block;
-            background: url("../images/card-invite-back.jpg") no-repeat center/cover;
-        }
-
-        .content {
-            z-index: 1;
-            height: 100%;
-            position: relative;
-
-            &:before, &:after {
-                content: '';
-                top: 0;
-                left: 0;
-                z-index: 3;
-                width: 100%;
-                height: 100%;
-                position: absolute;
-            }
-
-            &:before {
-                //background: url("../images/card-invite-head.png") no-repeat top center/100% auto;
-            }
-
-            &:after {
-                //background: url("../images/card-invite-foot.png") no-repeat bottom center/100% auto;
-            }
-
-            .inner {
-                width: 80%;
-                left: 10%;
-                bottom: 50px;
-                padding: 10px;
-                overflow: hidden;
-                border-radius: 20px;
-                position: absolute;
-                box-shadow: 0 0 0 1px rgba(#fff, .3) inset, 0 2px 5px rgba(0, 0, 0, 0.6);
-
-                text {
-                    color: #ff8dac;
-                    font-size: 16px;
-                    text-align: center;
-                    text-shadow: 0 0 2px #e03a0d;
-                }
-
-                &:before {
-                    content: '';
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    z-index: -1;
-                    margin: -10px;
-                    position: absolute;
-                    filter: blur(10px);
-                    background: url("../images/card-invite-back.jpg") no-repeat center/cover fixed;
-                }
-            }
-        }
-    }
-
-    .section {
-        padding: 20px;
-        background: #fff;
-
-        .line {
-            margin-top: 20px;
-
-            .label {
-                font-size: 14px;
-                padding: 10px 0;
-                line-height: 20px;
-                text-align: center;
-                border-top: 1px dashed #eee;
-            }
-
-            .body {
-            }
-        }
     }
 
     .card {
