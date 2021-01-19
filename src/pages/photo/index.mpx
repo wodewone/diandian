@@ -23,15 +23,24 @@
                 </view>
             </view>
             <view
-                    class="layer"
-                    hidden="{{!layerShow}}"
-                    bindtap="closeLayer"
-                    wx:if="layerImg"
+                class="layer"
+                hidden="{{!layerShow}}"
+                bindtap="closeLayer"
+                wx:if="layerImg"
             >
+<!--                <swiper indicator-dots="{{indicatorDots}}"-->
+<!--                        autoplay="{{autoplay}}" interval="{{interval}}" duration="{{duration}}">-->
+<!--                    <block wx:for="{{background}}" wx:key="*this">-->
+<!--                        <swiper-item>-->
+<!--                            <view class="swiper-item {{item}}"></view>-->
+<!--                        </swiper-item>-->
+<!--                    </block>-->
+<!--                </swiper>-->
                 <view class="inner" wx:style="{{layerStyle}}">
                     <image mode="widthFix" src="{{layerImg}}"></image>
                 </view>
             </view>
+<!--            <waterfall list="{{imgList}}" class="wrap"></waterfall>-->
         </view>
     </view>
 </template>
@@ -242,12 +251,17 @@
             box-shadow: 0 0 5px rgba(#000, 0.3);
         }
     }
+
+    .wrap{
+        width: 100%;
+    }
 </style>
 
 <script type="application/json">
     {
         "usingComponents": {
-            "petal": "../../components/petal"
+            "petal": "../../components/petal",
+            "waterfall": "../../components/waterfall"
         },
         "navigationBarTitleText": "Welcome!"
     }
