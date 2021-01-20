@@ -176,7 +176,7 @@
             height: 100%;
             position: fixed;
             display: inline-block;
-            background: url("https://64.media.tumblr.com/179b356742a8b620a7b2db33ac04f819/tumblr_oi7nm4PhZL1qmwj4no1_1280.jpg") no-repeat center/cover;
+            background: url("../../images/first-bg.jpg") no-repeat center/cover;
         }
 
         .content {

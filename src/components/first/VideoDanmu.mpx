@@ -34,11 +34,13 @@
             playProgressEvent ({ detail: { currentTime } }) {
                 this.videoPlayTime = currentTime
             },
-            sendDanmu () {
+            async sendDanmu () {
                 const { danmu: text, videoPlayTime } = this
                 const time = Math.ceil(videoPlayTime)
-                this.danmakuList.push({ text, time })
+                const item = { text, time }
+                this.danmakuList.push(item)
                 this.danmu = null
+                await fetch.post('/set/comment', item)
             },
             async fetchList () {
                 const { success, data } = await fetch.get('/get/comment/list')
