@@ -21,6 +21,7 @@
 
 <script>
     import { createComponent } from '@mpxjs/core'
+    import fetch from '../../plugins/fetch'
 
     createComponent({
         properties: {
@@ -278,6 +279,11 @@
                 this.aniIndex = index
                 this.aniTimeId && clearTimeout(this.aniTimeId)
                 this.putAniCover()
+            },
+            async send () {
+                const content = this.blessValue
+                const res = await fetch.post('/set/greeting', { content })
+                console.info(11221, res)
             }
         },
         watch: {
