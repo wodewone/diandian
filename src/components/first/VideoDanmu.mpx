@@ -42,7 +42,7 @@
                 this.danmu = null
                 await fetch.post('/set/comment', item)
             },
-            async fetchList () {
+            async fetchDanmuList () {
                 const { success, data } = await fetch.get('/get/comment/list')
                 if (success) {
                     this.danmakuList = data
@@ -51,7 +51,7 @@
         },
         ready () {
             this.videoCtx = wx.createVideoContext('video')
-            this.fetchList()
+            this.fetchDanmuList()
         }
     })
 </script>
