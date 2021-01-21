@@ -27,6 +27,7 @@ const _http = (method, api, data) => {
         })
     }).catch(e => {
         console.error('[Utils] http promise: ', e)
+        return { success: false, data: {}, code: 500 }
     })
 }
 const _wx = (method, ...arg) => {

@@ -114,6 +114,11 @@
             background: url("./images/header.png") no-repeat top left/100% auto;
         }
     }
+
+    .spin-loading {
+        min-height: 100px;
+        background: url("./images/loading.svg") no-repeat center/20px;
+    }
 </style>
 
 <script type="application/json">

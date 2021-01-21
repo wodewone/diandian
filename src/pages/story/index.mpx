@@ -29,7 +29,7 @@
                     <view class="line">
                         <view class="label">欢迎大家！</view>
                         <view class="body">
-                            <cover-list userInfo="{{userInfo}}"></cover-list>
+                            <cover-list userInfo="{{userInfo}}" showCover="{{showCover}}"></cover-list>
                         </view>
                     </view>
                     <view class="line">
@@ -61,6 +61,7 @@
             loading: true,
             userInfo: {},
             hasUserInfo: false,
+            showCover: false,
             canIUse: wx.canIUse('button.open-type.getUserInfo'),
             headerStyle: { 'transform': `translateY(-100%)` }
         },
@@ -73,6 +74,9 @@
                     percent = Math.min(percent, 100)
                 } else {
                     percent = Math.max(percent, -100)
+                }
+                if (scrollTop > pageHeight / 3) {
+                    this.showCover = true
                 }
                 this.headerStyle.transform = `translateY(-${100 - percent}%)`
             },
