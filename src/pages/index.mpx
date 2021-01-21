@@ -4,9 +4,9 @@
             <view class="login-layer">
                 <view class="card">
                     <view class="frame-box">
+                        <view class="frame-3"></view>
                         <view class="frame-1"></view>
                         <view class="frame-2"></view>
-                        <view class="frame-3"></view>
                     </view>
                 </view>
                 <button open-type="getUserInfo" bindgetuserinfo="getUserInfo">登录发信息</button>
@@ -103,8 +103,8 @@
 
             .frame-1 {
                 &:before {
-                    bottom: 2vh;
-                    height: 35%;
+                    bottom: -3vh;
+                    height: 45%;
                     transform: rotate(-17deg);
                 }
 
@@ -157,6 +157,8 @@
                     right: 38vw;
                     bottom: 2vh;
                     transform: rotate(125deg);
+
+                    display: none;
                 }
             }
         }

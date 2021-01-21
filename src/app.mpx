@@ -4,61 +4,58 @@
     import fetch from './plugins/fetch'
 
     mpx.use(apiProxy, { usePromise: true })
+
     createApp({
         globalData: {
             userInfo: null
         },
-        onLaunch () {
+        methods: {
+            async login () {
+                const res = await fetch.wx('login')
+                console.info('wx.login: ', res)
+                const { code } = res
+                // 发送 res.code 到后台换取 openId, sessionKey, unionId
+                const { success, data: { openid, unionid } } = await fetch.post('/post/wxlogin', { code })
+                const id = unionid || openid
+                console.info('fetch.wxlogin: ', id)
+                if (success) {
+                    const { success, data, msg } = await fetch.get('/get/token', { id })
+                    if (success) {
+                        wx.setStorageSync('token', data)
+                    } else {
+                        msg && wx.showToast({ title: msg, icon: 'none', duration: 1000 })
+                    }
+                }
+            },
+            async getSetting () {
+                const { authSetting } = await fetch.wx('getSetting')
+                console.info('wx.getSetting ', authSetting)
+                if (authSetting['scope.userInfo']) {
+                    // 已经授权，可以直接调用 getUserInfo 获取头像昵称，不会弹框
+                    const userData = await fetch.wx('getUserInfo')
+                    console.info('wx.getUserInfo ', userData)
+                    const { userInfo } = userData
+                    // 可以将 res 发送给后台解码出 unionId
+                    this.globalData.userInfo = userInfo
+                    await fetch.post('/set/user', userInfo)
+                    // 由于 getUserInfo 是网络请求，可能会在 Page.onLoad 之后才返回
+                    // 所以此处加入 callback 以防止这种情况
+                    if (this.userInfoReadyCallback) {
+                        this.userInfoReadyCallback(userData)
+                    }
+                }
+            }
+        },
+        async onLaunch () {
             // 展示本地存储能力
             const logs = wx.getStorageSync('logs') || []
             logs.unshift(Date.now())
             wx.setStorageSync('logs', logs)
 
             // 登录
-            wx.login({
-                success: async res => {
-                    console.info('wx.login: ', res)
-                    if (wx.getStorageSync('token')) {
-                        return
-                    }
-
-                    const { code } = res
-                    // 发送 res.code 到后台换取 openId, sessionKey, unionId
-                    const { success, data: { openid, unionid } } = await fetch.post('/post/wxlogin', { code })
-                    const id = unionid || openid
-                    if (success) {
-                        const { success, data, msg } = await fetch.get('/get/token', { id })
-                        if (success) {
-                            wx.setStorageSync('token', data)
-                        } else {
-                            msg && wx.showToast({ title: msg, icon: 'none', duration: 1000 })
-                        }
-                    }
-                }
-            })
+            await this.methods.login.call(this)
             // 获取用户信息
-            wx.getSetting({
-                success: res => {
-                    console.info('wx.getSetting ', res)
-                    if (res.authSetting['scope.userInfo']) {
-                        // 已经授权，可以直接调用 getUserInfo 获取头像昵称，不会弹框
-                        wx.getUserInfo({
-                            success: async res => {
-                                console.info('wx.getUserInfo ', res)
-                                const { userInfo } = res
-                                // 可以将 res 发送给后台解码出 unionId
-                                this.globalData.userInfo = userInfo
-                                await fetch.post('/set/user', userInfo)
-                                // 由于 getUserInfo 是网络请求，可能会在 Page.onLoad 之后才返回
-                                // 所以此处加入 callback 以防止这种情况
-                                if (this.userInfoReadyCallback) {
-                                    this.userInfoReadyCallback(res)
-                                }
-                            }
-                        })
-                    }
-                }
-            })
+            await this.methods.getSetting.call(this)
         }
     })
 </script>

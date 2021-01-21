@@ -29,7 +29,20 @@ const _http = (method, api, data) => {
         console.error('[Utils] http promise: ', e)
     })
 }
+const _wx = (method, ...arg) => {
+    return new Promise((resolve, reject) => {
+        wx[method]({ ...arg,
+            success (res) {
+                resolve(res)
+            },
+            fail (e) {
+                reject(e)
+            }
+        })
+    })
+}
 export default {
     get: (api, params) => _http('GET', api, params),
-    post: (api, data) => _http('POST', api, data)
+    post: (api, data) => _http('POST', api, data),
+    wx: _wx
 }

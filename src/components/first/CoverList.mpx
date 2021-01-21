@@ -76,8 +76,10 @@
             },
             async send () {
                 const blessing = this.blessValue
-                const res = await fetch.post('/set/greeting', { blessing })
-                console.info(11221, res)
+                const { success, msg } = await fetch.post('/set/greeting', { blessing })
+                if (!success && msg) {
+                    wx.showToast({ title: msg, icon: 'none', duration: 1000 })
+                }
             },
             async fetchList () {
                 const { success, data } = await fetch.get('/get/greetings')
@@ -94,6 +96,9 @@
             userMsgList (l) {
                 !l.length && this.putAniCover()
             }
+        },
+        unload () {
+            this.aniTimeId && clearTimeout(this.aniTimeId)
         },
         ready () {
             this.fetchList()

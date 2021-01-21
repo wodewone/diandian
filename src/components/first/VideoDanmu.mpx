@@ -1,4 +1,4 @@
-<template>
+<template xmlns:wx="http://www.w3.org/1999/xhtml">
     <video
         id="video"
         class="line-video"
@@ -35,12 +35,16 @@
                 this.videoPlayTime = currentTime
             },
             async sendDanmu () {
-                const { danmu: text, videoPlayTime } = this
+                const { danmu, videoPlayTime } = this
                 const time = Math.ceil(videoPlayTime)
+                const text = danmu.replace(/\n/g, '(-_-)')
                 const item = { text, time }
                 this.danmakuList.push(item)
                 this.danmu = null
-                await fetch.post('/set/comment', item)
+                const { success, msg } = await fetch.post('/set/comment', item)
+                if (!success && msg) {
+                    wx.showToast({ title: msg, icon: 'none', duration: 1000 })
+                }
             },
             async fetchDanmuList () {
                 const { success, data } = await fetch.get('/get/comment/list')
