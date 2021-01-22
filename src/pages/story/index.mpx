@@ -9,9 +9,9 @@
                 <block wx:else>
                     <view class="card">
                         <view class="frame-box">
+                            <view class="frame-3"></view>
                             <view class="frame-1"></view>
                             <view class="frame-2"></view>
-                            <view class="frame-3"></view>
                         </view>
                     </view>
                     <button open-type="getUserInfo" bindgetuserinfo="getUserInfo">登录发信息</button>
@@ -359,6 +359,8 @@
                     right: 38vw;
                     bottom: 2vh;
                     transform: rotate(125deg);
+
+                    display: none;
                 }
             }
         }

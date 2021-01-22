@@ -124,16 +124,11 @@
 <script type="application/json">
     {
         "pages": [
-            "./pages/index",
             "./pages/story/index",
             "./pages/photo/index"
         ],
         "tabBar": {
             "list": [
-                {
-                    "pagePath": "pages/index",
-                    "text": "Dream"
-                },
                 {
                     "pagePath": "pages/story/index",
                     "text": "Story"
@@ -159,7 +154,7 @@
         },
         "permission": {
             "scope.userLocation": {
-                "desc": "你的位置信息将用于计算位置距离"
+                "desc": "你的位置信息将用于计算场地路线"
             }
         }
     }
