@@ -43,7 +43,7 @@
                 this.danmu = null
                 const { success, msg } = await fetch.post('/set/comment', item)
                 if (!success && msg) {
-                    wx.showToast({ title: msg, icon: 'none', duration: 1000 })
+                    wx.showToast({ title: msg, icon: 'none', duration: 2000 })
                 }
             },
             async fetchDanmuList () {

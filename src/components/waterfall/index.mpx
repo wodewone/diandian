@@ -1,66 +1,215 @@
 <template>
-    <view class="waterfall" style="{{waterStyle}}">
-        <view class="item" wx:for="{{list}}" wx:key="index" style="grid-row: var(--item-span-{{index}})">
-            <image class="userinfo-avatar" src="{{item}}" mode="widthFix" lazy-load="true"></image>
+    <view class="wrap">
+        <view class="list">
+            <view
+                class="column"
+                wx:key="index"
+                wx:for="{{column.length}}"
+            >
+                <view
+                    wx:key="idx"
+                    wx:for="{{imgList}}"
+                    wx:for-index="idx"
+                    wx:for-item="img"
+                    class="item"
+                    bindtap="openLayer(img)"
+                >
+                    <view class="progress-box"><view class="progress"></view></view>
+                    <image class="userinfo-avatar" src="{{img}}" mode="widthFix" lazy-load="true"></image>
+                </view>
+                <view class="item">{{endSay[index]}}</view>
+            </view>
+        </view>
+        <view
+            bindtap="closeLayer"
+            class="layer"
+            hidden="{{!layerShow}}"
+            wx:if="layerImg"
+        >
+            <view class="inner" wx:style="{{layerStyle}}">
+                <image mode="widthFix" src="{{layerImg}}"></image>
+            </view>
+        </view>
+        <view class="temp-load-box">
+            <image wx:for="{{tempList}}" src="{{item}}" bindload="loadImg" binderror="loadImg" data-index="{{index}}" />
         </view>
     </view>
 </template>
 
 <script>
-    import { createComponent } from '@mpxjs/core'
-    createComponent({
-        properties: {
-            list: Array
-        },
-        data: {
-            waterStyle: ''
-        },
-        ready () {
-        },
-        methods: {},
-        watch: {
-            list () {
-                wx.createSelectorQuery().in(this)
-                    .selectAll('.waterfall .item').boundingClientRect(ret => {
-                        console.info(19333, ret)
-                        let styleStr = ''
-                        ret.forEach(({ height }, ii) => {
-                            const span = parseInt(height / 20)
-                            console.info(191, height, ii)
-                            styleStr += `--item-span-${ii}: auto / span ${span}`
-                        })
-                        this.waterStyle = styleStr
-                    })
+import { createComponent } from '@mpxjs/core'
+
+createComponent({
+    properties: {
+        list: Array
+    },
+    data: {
+        layerShow: false,
+        layerImg: null,
+        endSay: ['开心', '快乐', '高兴'],
+        tempList: [],
+        imgList: [],
+        column: [0, 0, 0],
+        imgCount: 0
+    },
+    computed: {
+        layerStyle () {
+            return {
+                'background-image': `url(${this.layerImg})`
             }
         }
-    })
+    },
+    methods: {
+        openLayer (img) {
+            if (!img.indexOf('http')) {
+                this.layerShow = !this.layerShow
+                this.layerImg = img
+            }
+        },
+        closeLayer () {
+            this.layerShow = !this.layerShow
+        },
+        loadImg ({ detail: { width, height }, dataset: { index } }) {
+            this.imgCount++
+            if (height) {
+                this.tempList[index].height = Math.ceil(height * 100 / width)
+            } else {
+                this.tempList[index].height = 100
+            }
+        },
+        renderData () {
+            // this.tempList.reduce()
+        }
+    },
+    watch: {
+        list (v) {
+            this.tempList = v && v.length ? v.map(src => ({ src })) : []
+        },
+        imgCount (n) {
+            const len = this.tempList.length
+            if (len && n === len) {
+                this.renderData()
+            }
+        }
+    }
+})
 </script>
 
 <style lang="scss">
-    .waterfall {
+.wrap{
+    width: 100vw;
+}
+.list {
+    padding: 0 5px;
+    display: flex;
+    overflow: auto;
+
+    .column {
+        flex: 1;
+        width: 33%;
+        padding: 5px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .item {
         width: 100%;
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);  // 指定两列，自动宽度
-        grid-gap: 0.25em; // 横向，纵向间隔
-        grid-auto-flow: row dense;  // 是否自动补齐空白
-        grid-auto-rows: 20px;  // base高度，grid-row基于此运算
+        overflow: hidden;
+        position: relative;
+        border-radius: 5px;
+        margin-bottom: 10px;
 
-        .item {
+        image {
             width: 100%;
-            color: #ddd;
             background: #d4d4d4;
+            vertical-align: middle;
+            box-shadow: 0 0 5px rgba(#000, .25);
+        }
 
-            .userinfo-avatar {
-                width: 100%;
-                background: #d4d4d4;
-                vertical-align: middle;
-            }
+        &:last-child {
+            flex: 1;
+            display: flex;
+            padding-bottom: 0;
+            border-radius: 5px;
+            align-items: center;
+            justify-content: center;
+            font-family: "Songti SC", "PingFang SC", serif;
+            box-shadow: 0 0 5px rgba(#000, .25) inset;
         }
     }
-</style>
 
-<script type="application/json">
-    {
-        "component": true
+    .progress-box {
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        position: absolute;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(#000, 0.35);
+
+        .progress {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(#333, 0.5);
+            box-shadow: 0 0 5px rgba(#000, .88);
+        }
     }
-</script>
+}
+.layer {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9;
+    position: fixed;
+    background-color: #000;
+
+    .inner {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        overflow: auto;
+        background-size: 0 0;
+        align-items: center;
+        justify-content: center;
+        -webkit-overflow-scrolling: touch;
+
+        &:before {
+            content: '';
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            margin: -10px;
+            filter: blur(8px);
+            position: fixed;
+            background-size: cover;
+            background-image: inherit;
+            background-position: center;
+        }
+
+        &:after {
+            content: '';
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1;
+            position: fixed;
+            background-color: rgba(#fff, 0.1);
+        }
+    }
+
+    image {
+        z-index: 3;
+        max-width: 85%;
+        border-radius: 5px;
+        position: relative;
+        box-shadow: 0 0 5px rgba(#000, 0.3);
+    }
+}
+</style>

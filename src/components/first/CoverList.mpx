@@ -77,7 +77,7 @@
                     this.aniCoverList.unshift(data)
                     this.coverEvent(0, 5000)
                 } else {
-                    msg && wx.showToast({ title: msg, icon: 'none', duration: 1000 })
+                    msg && wx.showToast({ title: msg, icon: 'none', duration: 2000 })
                 }
             },
             async fetchList () {

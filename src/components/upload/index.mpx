@@ -1,5 +1,5 @@
 <template>
-    <button class="btn {{loading}}" type="primary" bindtap="chooseImages" disabled="{{disabled || loading}}">Upload</button>
+    <button class="btn {{loading}}" type="primary" bindtap="chooseImages" disabled="{{disabled || loading}}">上传新照片</button>
 </template>
 
 <script>
@@ -10,8 +10,8 @@ import fetch from '../../plugins/fetch'
 
 createComponent({
     data: {
-        disabled: Boolean,
-        loading: Boolean
+        disabled: true,
+        loading: true
     },
     methods: {
         getImagePaths (count = 20, sizeType = ['original', 'compressed']) {
@@ -56,12 +56,12 @@ createComponent({
             console.info(112, res)
         },
         async getUpToken () {
-            const { success, data, msg } = await fetch.post('/get/uptoken')
+            const { success, data, msg } = await fetch.get('/get/uptoken')
             if (success) {
                 const { upToken } = data
                 this.upToken = upToken
             } else {
-                msg && wx.showToast({ title: msg, icon: 'none', duration: 1000 })
+                msg && wx.showToast({ title: msg, icon: 'none', duration: 2000 })
             }
         }
     },
@@ -72,11 +72,9 @@ createComponent({
 </script>
 
 <style lang="scss">
-    .btn{
+    button.btn{
         margin: 0;
         width: 100%;
-        height: 30px;
-        font-size: 12px;
     }
 </style>
 

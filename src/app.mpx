@@ -24,7 +24,7 @@
                         wx.setStorageSync('token', data)
                         sessionKey && wx.setStorageSync('sessionKey', sessionKey)
                     } else {
-                        msg && wx.showToast({ title: msg, icon: 'none', duration: 1000 })
+                        msg && wx.showToast({ title: msg, icon: 'none', duration: 2000 })
                     }
                 }
             },
@@ -130,8 +130,8 @@
 <script type="application/json">
     {
         "pages": [
-            "./pages/story/index",
-            "./pages/photo/index"
+            "./pages/photo/index",
+            "./pages/story/index"
         ],
         "tabBar": {
             "list": [

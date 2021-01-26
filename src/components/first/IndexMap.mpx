@@ -55,7 +55,7 @@
                     isHighAccuracy: true,
                     success: ({ longitude, latitude }) => {
                         this.locationInfo = { longitude, latitude }
-                        // wx.showToast({ title: `${longitude},${latitude}`, icon: 'none', duration: 1000 })
+                        // wx.showToast({ title: `${longitude},${latitude}`, icon: 'none', duration: 2000 })
                     }
                 })
             },
