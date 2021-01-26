@@ -1,0 +1,88 @@
+<template>
+    <button class="btn {{loading}}" type="primary" bindtap="chooseImages" disabled="{{disabled || loading}}">Upload</button>
+</template>
+
+<script>
+import { createComponent } from '@mpxjs/core'
+import md5 from 'md5'
+import * as qiniu from 'qiniu-js'
+import fetch from '../../plugins/fetch'
+
+createComponent({
+    data: {
+        disabled: Boolean,
+        loading: Boolean
+    },
+    methods: {
+        getImagePaths (count = 20, sizeType = ['original', 'compressed']) {
+            return fetch.wx('chooseImage', { count, sizeType })
+        },
+        getFileStream (filePath, encoding = 'binary') {
+            return new Promise((resolve, reject) => {
+                wx.getFileSystemManager().readFile({
+                    filePath,
+                    encoding,
+                    success (res) {
+                        resolve(res.data)
+                    },
+                    fail (res) {
+                        reject(res)
+                    }
+                })
+            })
+        },
+        fileMd5 (file) {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const fileStream = await this.getFileStream(file)
+                    const md5Key = md5(fileStream)
+                    resolve(md5Key)
+                } catch (error) {
+                    reject(error)
+                }
+            })
+        },
+        uploadFile (file, key) {
+            const token = ''
+            const putExtra = {}
+            const config = {
+                useCdnDomain: true,
+                region: qiniu.region.z1
+            }
+            qiniu.upload(file, key, token, putExtra, config)
+        },
+        async chooseImages () {
+            const res = await this.getImagePaths()
+            console.info(112, res)
+        },
+        async getUpToken () {
+            const { success, data, msg } = await fetch.post('/get/uptoken')
+            if (success) {
+                const { upToken } = data
+                this.upToken = upToken
+            } else {
+                msg && wx.showToast({ title: msg, icon: 'none', duration: 1000 })
+            }
+        }
+    },
+    ready () {
+        this.getUpToken()
+    }
+})
+</script>
+
+<style lang="scss">
+    .btn{
+        margin: 0;
+        width: 100%;
+        height: 30px;
+        font-size: 12px;
+    }
+</style>
+
+<script type="application/json">
+    {
+        "component": true,
+        "styleIsolation": "apply-shared"
+    }
+</script>

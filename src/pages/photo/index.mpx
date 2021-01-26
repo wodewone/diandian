@@ -42,6 +42,7 @@
             </view>
 <!--            <waterfall list="{{imgList}}" class="wrap"></waterfall>-->
         </view>
+        <uploadImg class="upload-box"></uploadImg>
     </view>
 </template>
 
@@ -135,6 +136,16 @@
 </script>
 
 <style lang="scss">
+    .page{
+        padding-bottom: 50px;
+
+        .upload-box{
+            left: 10vw;
+            width: 90vw;
+            bottom: 10px;
+            position: fixed;
+        }
+    }
     .bg {
         z-index: 99;
         position: relative;
@@ -262,7 +273,8 @@
     {
         "usingComponents": {
             "petal": "../../components/petal",
-            "waterfall": "../../components/waterfall"
+            "waterfall": "../../components/waterfall",
+            "uploadImg": "../../components/upload"
         },
         "navigationBarTitleText": "Welcome!"
     }
