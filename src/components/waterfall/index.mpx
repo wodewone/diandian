@@ -1,24 +1,28 @@
 <template>
     <view class="wrap">
-        <view class="list">
-            <view
-                class="column"
-                wx:key="index"
-                wx:for="{{column.length}}"
-            >
+        <view class="img-list">
+            <block wx:if="{{!loading}}">
+                <view hidden="{{imgList.length}}" class="no-data"></view>
                 <view
-                    wx:key="idx"
+                    class="column"
+                    wx:key="index"
                     wx:for="{{imgList}}"
-                    wx:for-index="idx"
-                    wx:for-item="img"
-                    class="item"
-                    bindtap="openLayer(img)"
+                    wx:style="width: {{columnWidth}}"
                 >
-                    <view class="progress-box"><view class="progress"></view></view>
-                    <image class="userinfo-avatar" src="{{img}}" mode="widthFix" lazy-load="true"></image>
+                    <view
+                        wx:key="idx"
+                        wx:for="{{item || []}}"
+                        wx:for-index="idx"
+                        wx:for-item="img"
+                        class="item"
+                        bindtap="openLayer(img)"
+                    >
+                        <view class="progress-box" wx:if="{{localImgObj[img.tempId]}}"><view class="progress"><view class="content" wx:style="{{localImgObj[img.id]}}"></view></view></view>
+                        <image class="album" src="{{img.src}}" mode="widthFix" lazy-load="true"></image>
+                    </view>
+                    <view class="item">{{endSay[index]}}</view>
                 </view>
-                <view class="item">{{endSay[index]}}</view>
-            </view>
+            </block>
         </view>
         <view
             bindtap="closeLayer"
@@ -27,21 +31,30 @@
             wx:if="layerImg"
         >
             <view class="inner" wx:style="{{layerStyle}}">
-                <image mode="widthFix" src="{{layerImg}}"></image>
+                <image class="photograph" mode="widthFix" src="{{layerImg}}"></image>
             </view>
         </view>
         <view class="temp-load-box">
-            <image wx:for="{{tempList}}" src="{{item}}" bindload="loadImg" binderror="loadImg" data-index="{{index}}" />
+            <image wx:for="{{tempList}}" wx:key="index" src="{{item.src}}" bindload="loadImg" binderror="loadImg" data-index="{{index}}" />
         </view>
     </view>
 </template>
 
 <script>
-import { createComponent } from '@mpxjs/core'
+import mpx, { createComponent } from '@mpxjs/core'
+// import fetch from '../../plugins/fetch'
 
 createComponent({
     properties: {
-        list: Array
+        list: {
+            type: Array,
+            default: null
+        },
+        localList: {
+            type: Array,
+            default: null
+        },
+        loading: Boolean
     },
     data: {
         layerShow: false,
@@ -50,9 +63,14 @@ createComponent({
         tempList: [],
         imgList: [],
         column: [0, 0, 0],
-        imgCount: 0
+        imgCount: 0,
+
+        localImgObj: {}
     },
     computed: {
+        columnWidth () {
+            return (100 / this.column.length).toFixed(2) + '%'
+        },
         layerStyle () {
             return {
                 'background-image': `url(${this.layerImg})`
@@ -60,16 +78,17 @@ createComponent({
         }
     },
     methods: {
-        openLayer (img) {
-            if (!img.indexOf('http')) {
+        openLayer ({ src }) {
+            if (!src.indexOf('http')) {
                 this.layerShow = !this.layerShow
-                this.layerImg = img
+                this.layerImg = src
             }
         },
         closeLayer () {
             this.layerShow = !this.layerShow
         },
-        loadImg ({ detail: { width, height }, dataset: { index } }) {
+        loadImg ({ detail: { width, height }, target }) {
+            const { dataset: { index } = {} } = target || {}
             this.imgCount++
             if (height) {
                 this.tempList[index].height = Math.ceil(height * 100 / width)
@@ -77,18 +96,66 @@ createComponent({
                 this.tempList[index].height = 100
             }
         },
-        renderData () {
-            // this.tempList.reduce()
+        renderData (arrList = [], unshift = false) {
+            const { column } = this
+            const list = arrList.reduce((so, item) => {
+                const { height = 0 } = item
+                const minColumn = Math.min(...column)
+                const fIndex = column.findIndex(i => i === minColumn)
+                const index = fIndex >= 0 ? fIndex : 0
+                this.column[index] += height
+                so[index] = so[index] || []
+                so[index].push(item)
+                return so
+            }, [])
+            list.forEach((item, index) => {
+                if (!this.imgList[index]) {
+                    mpx.set(this.imgList, index, [])
+                }
+                // this.imgList[index] = this.imgList[index] || []
+                if (unshift) {
+                    // mpx.set(this.imgList, index, ..item)
+                    this.imgList[index].unshift(...item)
+                } else {
+                    this.imgList[index].push(...item)
+                }
+            })
+            console.info(9811, list, this.column, this.imgList)
+            // this.triggerEvent('upload', { disabled: false })
+        },
+        handlerLocalList (list) {
+            // const { imgList, tempList } = this
+            // const len = imgList.length + tempList.length
+            // this.localImgObj = list.reduce((so, item, index) => {
+            //     const { src, id } = item
+            //     if (!id) {
+            //         const tempId = len + index
+            //         so[tempId] = { src, tempId }
+            //     }
+            //     return so
+            // }, {})
+            // this.triggerEvent('upload', { disabled: true })
+            // list.forEach(async ({ src }) => {
+            //     const s = await fetch.wx('getImageInfo', { src })
+            //     console.info(1122, s)
+            // })
+            this.renderData(list, true)
         }
     },
     watch: {
         list (v) {
-            this.tempList = v && v.length ? v.map(src => ({ src })) : []
+            v && v.length && (this.tempList = v)
+        },
+        localList (v) {
+            console.info('localList: ', v)
+            v && v.length && this.handlerLocalList(v)
         },
         imgCount (n) {
             const len = this.tempList.length
-            if (len && n === len) {
-                this.renderData()
+            if (n && len && n === len) {
+                this.renderData(this.tempList)
+                this.tempList = []
+                this.imgCount = 0
             }
         }
     }
@@ -99,14 +166,21 @@ createComponent({
 .wrap{
     width: 100vw;
 }
-.list {
-    padding: 0 5px;
+.temp-load-box{
+    display: none;
+}
+.img-list {
     display: flex;
+    padding: 0 5px;
     overflow: auto;
+    min-height: 50vh;
+
+    .no-data{
+        background: url("../../images/pic-photo-none.png") no-repeat center/50%;
+    }
 
     .column {
         flex: 1;
-        width: 33%;
         padding: 5px;
         display: flex;
         flex-direction: column;
@@ -119,7 +193,7 @@ createComponent({
         border-radius: 5px;
         margin-bottom: 10px;
 
-        image {
+        .album {
             width: 100%;
             background: #d4d4d4;
             vertical-align: middle;
@@ -128,7 +202,9 @@ createComponent({
 
         &:last-child {
             flex: 1;
+            min-height: 30px;
             display: flex;
+            font-size: 10px;
             padding-bottom: 0;
             border-radius: 5px;
             align-items: center;
@@ -137,27 +213,68 @@ createComponent({
             box-shadow: 0 0 5px rgba(#000, .25) inset;
         }
     }
+}
 
-    .progress-box {
-        top: 0;
-        left: 0;
+.progress-box {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    position: absolute;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(#000, 0.35);
+
+    .progress {
+        width: 10vw;
+        height: 10vw;
+        overflow: hidden;
+        border-radius: 50%;
+        background: rgba(#333, 0.5);
+        box-shadow: 0 0 5px rgba(#000, .88);
+    }
+
+    .content{
         width: 100%;
         height: 100%;
-        display: flex;
-        position: absolute;
-        align-items: center;
-        justify-content: center;
-        background-color: rgba(#000, 0.35);
+        margin-top: 100%;
+        position: relative;
 
-        .progress {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: rgba(#333, 0.5);
-            box-shadow: 0 0 5px rgba(#000, .88);
+        &:before,
+        &:after{
+            content: '';
+            top: 0;
+            width: 20vw;
+            height: 20vw;
+            position: absolute;
+            border-radius: 45%;
+            display: inline-block;
+        }
+        &:before{
+            left: -4.5vw;
+            background-color: #50c1f1;
+            animation: water linear 3.5s infinite;
+        }
+        &:after{
+            left: -5.5vw;
+            background-color: #479fca;
+            animation: water linear 3s infinite;
+        }
+    }
+
+    @keyframes water {
+        0% {
+            //transform: translateX(-50%) rotateZ(0deg);
+            transform: rotateZ(0deg);
+        }
+        100% {
+            //transform: translateX(-50%) rotateZ(360deg);
+            transform: rotateZ(360deg);
         }
     }
 }
+
 .layer {
     top: 0;
     left: 0;
@@ -204,7 +321,7 @@ createComponent({
         }
     }
 
-    image {
+    .photograph {
         z-index: 3;
         max-width: 85%;
         border-radius: 5px;
@@ -213,3 +330,9 @@ createComponent({
     }
 }
 </style>
+
+<script type="application/json">
+    {
+        "component": true
+    }
+</script>

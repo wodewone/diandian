@@ -32,7 +32,6 @@ const _http = (method, api, data) => {
 }
 const _wx = (method, ...arg) => {
     return new Promise((resolve, reject) => {
-        console.info(99, ...arg)
         wx[method]({
             ...arg,
             success (res) {
