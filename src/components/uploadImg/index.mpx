@@ -1,5 +1,70 @@
 <template>
-    <view class="wrap">
-
+    <view wx:if="{{upToken}}" class="fix-box">
+        <button class="btn add" type="primary" bindtap="chooseImages" disabled="{{btnDisabled}}">上传新照片</button>
+        <button class="btn edit" disabled="{{btnDisabled}}">编辑</button>
     </view>
 </template>
+
+<script>
+import { createComponent } from '@mpxjs/core'
+import fetch from '../../plugins/fetch'
+
+createComponent({
+    data: {
+        btnDisabled: false,
+        upToken: null
+    },
+    methods: {
+        async fetchUpToken () {
+            const { success, data, msg } = await fetch.get('/get/uptoken')
+            if (success) {
+                const { token } = data
+                this.upToken = token
+            } else {
+                msg && wx.showToast({ title: msg, icon: 'none', duration: 2000 })
+            }
+        }
+    },
+    onReady () {
+        this.fetchUpToken()
+    }
+})
+</script>
+
+<style lang="scss">
+.fix-box {
+    left: 5vw;
+    width: 90vw;
+    bottom: 10px;
+    display: flex;
+    position: fixed;
+
+    button {
+        font-size: 12px;
+        box-shadow: 0 0 5px rgba(#000, 0.5);
+
+        &.add {
+            width: 70%;
+            margin-right: 2.5vw;
+        }
+
+        &.edit {
+            flex: 1;
+            color: #fff;
+            background: #327cc3;
+        }
+
+        &.btn[disabled] {
+            color: #a5a2a2;
+            background: #d2d8e2;
+            box-shadow: 0 0 3px rgba(#000, 0.3);
+        }
+    }
+}
+</style>
+
+<script type="application/json">
+{
+    "component": true
+}
+</script>

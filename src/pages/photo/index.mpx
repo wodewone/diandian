@@ -2,13 +2,10 @@
     <view class="page">
         <include src="../../components/template/header.wxml"></include>
         <view class="container">
-<!--            <petal class="bg"></petal>-->
+            <petal class="bg"></petal>
             <waterfall list="{{imgList}}" localList="{{localList}}" loading="{{loading}}" class="wrap" bind:upload="eventUpload"></waterfall>
         </view>
-        <view wx:if="{{upToken}}" class="fix-box">
-            <button class="btn add" type="primary" bindtap="chooseImages" disabled="{{btnDisabled}}">上传新照片</button>
-            <button class="btn edit" disabled="{{btnDisabled}}">编辑</button>
-        </view>
+        <uploadImg></uploadImg>
     </view>
 </template>
 
@@ -65,8 +62,6 @@ const imgDemoList = [
 createPage({
     data: {
         loading: true,
-        btnDisabled: false,
-        upToken: null,
         imgList: [],
         localList: []
     },
@@ -125,15 +120,6 @@ createPage({
             //     return item
             // })
         },
-        async fetchUpToken () {
-            const { success, data, msg } = await fetch.get('/get/uptoken')
-            if (success) {
-                const { token } = data
-                this.upToken = token
-            } else {
-                msg && wx.showToast({ title: msg, icon: 'none', duration: 2000 })
-            }
-        },
         mockImg () {
             return new Promise((resolve) => {
                 const list = imgDemoList.map((src, id) => ({ src, id }))
@@ -151,7 +137,6 @@ createPage({
     },
     onReady () {
         this.loading = false
-        this.fetchUpToken()
         // this.fetchImgList()
     },
     onReachBottom (...arg) {
@@ -168,42 +153,13 @@ createPage({
     .container{
         min-height: 100%;
     }
-
-    .fix-box{
-        left: 5vw;
-        width: 90vw;
-        bottom: 10px;
-        display: flex;
-        position: fixed;
-
-        button {
-            font-size: 12px;
-            box-shadow: 0 0 5px rgba(#000, 0.5);
-
-            &.add {
-                width: 70%;
-                margin-right: 2.5vw;
-            }
-
-            &.edit {
-                flex: 1;
-                color: #fff;
-                background: #327cc3;
-            }
-
-            &.btn[disabled] {
-                color: #a5a2a2;
-                background: #d2d8e2;
-                box-shadow: 0 0 3px rgba(#000, 0.3);
-            }
-        }
-    }
 </style>
 
 <script type="application/json">
     {
         "usingComponents": {
             "petal": "../../components/petal",
+            "uploadImg": "../../components/uploadImg",
             "waterfall": "../../components/waterfall"
         },
         "navigationBarTitleText": "Welcome!"
