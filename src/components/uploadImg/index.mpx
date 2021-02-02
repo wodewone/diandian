@@ -8,6 +8,8 @@
 <script>
 import { createComponent } from '@mpxjs/core'
 import fetch from '../../plugins/fetch'
+import md5 from 'md5'
+import * as qiniu from 'qiniu-js'
 
 createComponent({
     data: {
@@ -15,6 +17,73 @@ createComponent({
         upToken: null
     },
     methods: {
+        getImagePaths (count = 5, sizeType = ['original']) {
+            return fetch.wx('chooseImage', { count, sizeType })
+        },
+        getFileStream (filePath, encoding = 'binary') {
+            return new Promise((resolve, reject) => {
+                wx.getFileSystemManager().readFile({
+                    filePath,
+                    encoding,
+                    success (res) {
+                        resolve(res.data)
+                    },
+                    fail (res) {
+                        reject(res)
+                    }
+                })
+            })
+        },
+        fileMd5 (filePath) {
+            const { getFileStream } = this
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const fileStream = await getFileStream(filePath)
+                    const md5Key = md5(fileStream)
+                    resolve(md5Key)
+                } catch (error) {
+                    reject(error)
+                }
+            })
+        },
+        uploadFile (file, key) {
+            const { upToken: token } = this
+            if (!token) {
+                return false
+            }
+            const putExtra = {}
+            const config = {
+                useCdnDomain: true,
+                region: qiniu.region.z1
+            }
+            return qiniu.upload(file, key, token, putExtra, config)
+        },
+        async chooseImages () {
+            const { tempFilePaths = [] } = await this.getImagePaths()
+            if (tempFilePaths.length) {
+                this.localList = await Promise.all(tempFilePaths.map(async (src, tempId) => {
+                    const observable = this.uploadFile(src, this.fileMd5(src))
+                    const item = { src, tempId }
+                    item.subscription = observable.subscribe({
+                        next ({ total: { percent } }) { item.percent = percent },
+                        error ({ message }) {
+                            item.fail = true
+                            message && wx.showToast({ title: message, icon: 'none', duration: 2000 })
+                        }
+                    })
+                    return item
+                }))
+                console.info(181, this.localList)
+            }
+            // this.localList = tempFilePaths.map(src => {
+            //     const item = { src }
+            //     item.time = 1
+            //     setInterval(() => {
+            //         item.time++
+            //     }, 2000)
+            //     return item
+            // })
+        },
         async fetchUpToken () {
             const { success, data, msg } = await fetch.get('/get/uptoken')
             if (success) {
@@ -25,7 +94,7 @@ createComponent({
             }
         }
     },
-    onReady () {
+    ready () {
         this.fetchUpToken()
     }
 })

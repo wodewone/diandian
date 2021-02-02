@@ -1,11 +1,16 @@
-const baseUrl = 'http://localhost:3001/v1'
-const header = {
-    'content-type': 'application/json',
-    'authorization': wx.getStorageSync('token')
-}
+// const baseUrl = 'http://localhost:3001/v1'
+const baseUrl = 'https://www.wodewone.com/point/v1'
+
+let header = null
 
 const _http = (method, api, data) => {
     return new Promise((resolve, reject) => {
+        if (!header) {
+            header = {
+                'Content-type': 'application/json',
+                'Authorization': wx.getStorageSync('token')
+            }
+        }
         wx.request({
             url: baseUrl + api,
             data,
