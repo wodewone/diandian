@@ -2,11 +2,11 @@
     <view class="wrap">
         <view class="img-list">
             <block wx:if="{{!loading}}">
-                <view hidden="{{showList.length}}" class="no-data"></view>
+                <view hidden="{{imgList.length}}" class="no-data"></view>
                 <view
                     class="column"
                     wx:key="index"
-                    wx:for="{{showList}}"
+                    wx:for="{{imgList}}"
                     wx:style="{{columnWidth}}"
                 >
                     <view
@@ -17,6 +17,7 @@
                         class="item"
                         bindtap="openLayer(img)"
                     >
+                        <view class="progress-box" wx:if="{{localImgObj[img.tempId]}}"><view class="progress"><view class="content" wx:style="{{localImgObj[img.id]}}"></view></view></view>
                         <image class="album" src="{{img.src}}" mode="widthFix" lazy-load="true"></image>
                     </view>
                     <view class="item">{{endSay[index]}}</view>
@@ -45,7 +46,11 @@ import mpx, { createComponent } from '@mpxjs/core'
 
 createComponent({
     properties: {
-        imgList: {
+        list: {
+            type: Array,
+            default: null
+        },
+        localList: {
             type: Array,
             default: null
         },
@@ -54,9 +59,9 @@ createComponent({
     data: {
         layerShow: false,
         layerImg: null,
-        endSay: ['点击可', '编写任', '意内容'],
+        endSay: ['开心', '快乐', '高兴'],
         tempList: [],
-        showList: [],
+        imgList: [],
         column: [0, 0, 0],
         imgCount: 0,
 
@@ -105,23 +110,45 @@ createComponent({
                 return so
             }, [])
             list.forEach((item, index) => {
-                if (!this.showList[index]) {
-                    mpx.set(this.showList, index, [])
+                if (!this.imgList[index]) {
+                    mpx.set(this.imgList, index, [])
                 }
-                // this.showList[index] = this.showList[index] || []
+                // this.imgList[index] = this.imgList[index] || []
                 if (unshift) {
-                    this.showList[index].unshift(...item)
+                    this.imgList[index].unshift(...item)
                 } else {
-                    this.showList[index].push(...item)
+                    this.imgList[index].push(...item)
                 }
             })
-            console.info(9811, list, this.column, this.showList)
+            console.info(9811, list, this.column, this.imgList)
             // this.triggerEvent('upload', { disabled: false })
+        },
+        handlerLocalList (list) {
+            // const { imgList, tempList } = this
+            // const len = imgList.length + tempList.length
+            // this.localImgObj = list.reduce((so, item, index) => {
+            //     const { src, id } = item
+            //     if (!id) {
+            //         const tempId = len + index
+            //         so[tempId] = { src, tempId }
+            //     }
+            //     return so
+            // }, {})
+            // this.triggerEvent('upload', { disabled: true })
+            // list.forEach(async ({ src }) => {
+            //     const s = await fetch.wx('getImageInfo', { src })
+            //     console.info(1122, s)
+            // })
+            this.renderData(list, true)
         }
     },
     watch: {
-        imgList (v) {
+        list (v) {
             v && v.length && (this.tempList = v)
+        },
+        localList (v) {
+            console.info('localList: ', v)
+            v && v.length && this.handlerLocalList(v)
         },
         imgCount (n) {
             const len = this.tempList.length
@@ -184,6 +211,66 @@ createComponent({
             justify-content: center;
             font-family: "Songti SC", "PingFang SC", serif;
             box-shadow: 0 0 5px rgba(#000, .25) inset;
+        }
+    }
+}
+
+.progress-box {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    position: absolute;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(#000, 0.35);
+
+    .progress {
+        width: 10vw;
+        height: 10vw;
+        overflow: hidden;
+        border-radius: 50%;
+        background: rgba(#333, 0.5);
+        box-shadow: 0 0 5px rgba(#000, .88);
+    }
+
+    .content{
+        width: 100%;
+        height: 100%;
+        margin-top: 100%;
+        position: relative;
+
+        &:before,
+        &:after{
+            content: '';
+            top: 0;
+            width: 20vw;
+            height: 20vw;
+            position: absolute;
+            border-radius: 45%;
+            display: inline-block;
+        }
+        &:before{
+            left: -4.5vw;
+            background-color: #50c1f1;
+            animation: water linear 3.5s infinite;
+        }
+        &:after{
+            left: -5.5vw;
+            background-color: #479fca;
+            animation: water linear 3s infinite;
+        }
+    }
+
+    @keyframes water {
+        0% {
+            //transform: translateX(-50%) rotateZ(0deg);
+            transform: rotateZ(0deg);
+        }
+        100% {
+            //transform: translateX(-50%) rotateZ(360deg);
+            transform: rotateZ(360deg);
         }
     }
 }

@@ -1,7 +1,7 @@
 <template>
     <view wx:if="{{upToken}}" class="fix-box">
         <button class="btn add" type="primary" bindtap="chooseImages" disabled="{{btnDisabled}}">上传新照片</button>
-        <button class="btn edit" disabled="{{btnDisabled}}">编辑</button>
+        <button class="btn edit" disabled="{{!imgList.length || btnDisabled}}">编辑({{ imgList.length }}/{{ maxNum }})</button>
     </view>
 </template>
 
@@ -12,7 +12,14 @@ import md5 from 'md5'
 import * as qiniu from 'qiniu-js'
 
 createComponent({
+    properties: {
+        imgList: {
+            type: Array,
+            default: null
+        }
+    },
     data: {
+        maxNum: 200,
         btnDisabled: false,
         upToken: null
     },
@@ -109,16 +116,18 @@ createComponent({
     position: fixed;
 
     button {
+        padding-left: 0;
+        padding-right: 0;
         font-size: 12px;
         box-shadow: 0 0 5px rgba(#000, 0.5);
 
         &.add {
-            width: 70%;
+            flex: 1;
             margin-right: 2.5vw;
         }
 
         &.edit {
-            flex: 1;
+            width: 90px;
             color: #fff;
             background: #327cc3;
         }
