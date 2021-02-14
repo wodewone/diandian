@@ -9,7 +9,7 @@
 import { createComponent } from '@mpxjs/core'
 import fetch from '../../plugins/fetch'
 import md5 from 'md5'
-import * as qiniu from 'qiniu-js'
+// import * as qiniu from 'qiniu-js'
 
 createComponent({
     properties: {
@@ -21,6 +21,8 @@ createComponent({
     data: {
         maxNum: 200,
         btnDisabled: false,
+        imgUrl: 'http://cdm.wodewone.com',
+        imgScope: null,
         upToken: null
     },
     methods: {
@@ -53,31 +55,58 @@ createComponent({
                 }
             })
         },
-        uploadFile (file, key) {
-            const { upToken: token } = this
+        // uploadFile (file, key) {
+        //     const { upToken: token } = this
+        //     if (!token) {
+        //         return false
+        //     }
+        //     const putExtra = {}
+        //     const config = {
+        //         useCdnDomain: true,
+        //         region: qiniu.region.z1
+        //     }
+        //     return qiniu.upload(file, key, token, putExtra, config)
+        // },
+        uploadFile (file, index) {
+            const { upToken: token, imgUrl, imgScope, imgList } = this
             if (!token) {
                 return false
             }
-            const putExtra = {}
-            const config = {
-                useCdnDomain: true,
-                region: qiniu.region.z1
+            const formData = {
+                token,
+                key: `${imgScope}/${imgList.length + index}`
             }
-            return qiniu.upload(file, key, token, putExtra, config)
+            return new Promise((resolve, reject) => {
+                let uploadTask = null
+                uploadTask = wx.uploadFile({
+                    url: 'https://up-z1.qiniup.com',
+                    filePath: file,
+                    name: 'file',
+                    formData: formData,
+                    success (res) {
+                        console.info(999, res)
+                        const { key, width, height } = JSON.parse(res.data)
+                        const src = `${imgUrl}/${key}`
+                        resolve({ src, width, height, uploadTask })
+                    }
+                })
+            })
         },
         async chooseImages () {
             const { tempFilePaths = [] } = await this.getImagePaths()
             if (tempFilePaths.length) {
                 this.localList = await Promise.all(tempFilePaths.map(async (src, tempId) => {
-                    const observable = this.uploadFile(src, this.fileMd5(src))
-                    const item = { src, tempId }
-                    item.subscription = observable.subscribe({
-                        next ({ total: { percent } }) { item.percent = percent },
-                        error ({ message }) {
-                            item.fail = true
-                            message && wx.showToast({ title: message, icon: 'none', duration: 2000 })
-                        }
-                    })
+                    // const observable = this.uploadFile(src, this.fileMd5(src))
+                    const item = await this.uploadFile(src, tempId)
+                    console.info(9121, item)
+                    // const item = { src, tempId }
+                    // item.subscription = observable.subscribe({
+                    //     next ({ total: { percent } }) { item.percent = percent },
+                    //     error ({ message }) {
+                    //         item.fail = true
+                    //         message && wx.showToast({ title: message, icon: 'none', duration: 2000 })
+                    //     }
+                    // })
                     return item
                 }))
                 console.info(181, this.localList)
@@ -94,8 +123,10 @@ createComponent({
         async fetchUpToken () {
             const { success, data, msg } = await fetch.get('/get/uptoken')
             if (success) {
-                const { token } = data
+                const { token, url, scope } = data
+                this.imgUrl = url || this.imgUrl
                 this.upToken = token
+                this.imgScope = scope
             } else {
                 msg && wx.showToast({ title: msg, icon: 'none', duration: 2000 })
             }
