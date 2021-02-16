@@ -1,12 +1,28 @@
 <template>
     <view wx:if="{{upToken}}" class="fix-box">
-        <button class="btn add" type="primary" bindtap="chooseImages" disabled="{{btnDisabled}}">上传新照片</button>
-        <button class="btn edit" disabled="{{!imgList.length || btnDisabled}}">编辑({{ imgList.length }}/{{ maxNum }})</button>
+        <view
+            wx:if="{{localList.length}}"
+            class="pic-load">
+            <view
+                wx:key="index"
+                wx:for="{{localList}}"
+                class="pic-box {{item.success ? 'success' : ''}}"
+                wx:style="background-image: url({{item.src}})"
+                bindtap="loadEvent(index)"
+            >
+                <view hidden="{{item.exists}}" class="shadow" wx:style="height: {{item.progress}}%"></view>
+                <view hidden="{{!item.exists}}" class="exists">已存在</view>
+            </view>
+        </view>
+        <view class="btn-groups">
+            <button class="btn add" type="primary" bindtap="chooseImages" disabled="{{btnDisabled}}">上传新照片</button>
+            <button class="btn edit" disabled="{{!imgList.length || btnDisabled}}">编辑({{ imgList.length }}/{{ maxNum }})</button>
+        </view>
     </view>
 </template>
 
 <script>
-import { createComponent } from '@mpxjs/core'
+import mpx, { createComponent } from '@mpxjs/core'
 import fetch from '../../plugins/fetch'
 import md5 from 'md5'
 // import * as qiniu from 'qiniu-js'
@@ -21,11 +37,23 @@ createComponent({
     data: {
         maxNum: 200,
         btnDisabled: false,
-        imgUrl: 'http://cdm.wodewone.com',
+        imgUrlBase: 'http://cdm.wodewone.com',
         imgScope: null,
-        upToken: null
+        upToken: null,
+
+        imgProgress: {},
+        localList: []
     },
     methods: {
+        loadEvent (index) {
+            const item = this.localList[index]
+            try {
+                item.cancel()
+                mpx.delete(this.localList, index)
+            } catch (e) {
+                console.warn(e)
+            }
+        },
         getImagePaths (count = 5, sizeType = ['original']) {
             return fetch.wx('chooseImage', { count, sizeType })
         },
@@ -68,7 +96,7 @@ createComponent({
         //     return qiniu.upload(file, key, token, putExtra, config)
         // },
         uploadFile (file, index) {
-            const { upToken: token, imgUrl, imgScope, imgList } = this
+            const { upToken: token, imgScope, imgList } = this
             if (!token) {
                 return false
             }
@@ -76,29 +104,43 @@ createComponent({
                 token,
                 key: `${imgScope}/${imgList.length + index}`
             }
+            console.info(99811, file)
             return new Promise((resolve, reject) => {
-                let uploadTask = null
-                uploadTask = wx.uploadFile({
+                const local = this.localList[index]
+                const success = ({ data, statusCode }) => {
+                    if (statusCode === 614) {
+                        mpx.set(local, 'exists', true)
+                        return resolve()
+                    }
+                    const { key, hash } = JSON.parse(data)
+                    // const src = `${imgUrlBase}/${key}`
+                    mpx.set(local, 'success', true)
+                    resolve({ key, hash })
+                }
+                const uploadTask = wx.uploadFile({
                     url: 'https://up-z1.qiniup.com',
                     filePath: file,
                     name: 'file',
                     formData: formData,
-                    success (res) {
-                        console.info(999, res)
-                        const { key, width, height } = JSON.parse(res.data)
-                        const src = `${imgUrl}/${key}`
-                        resolve({ src, width, height, uploadTask })
+                    success,
+                    fail (res) {
+                        console.info('999 fail:', res)
+                        reject(res)
                     }
                 })
+                uploadTask.onProgressUpdate(({ progress }) => {
+                    mpx.set(local, 'progress', 100 - progress)
+                })
+                local.cancel = () => uploadTask.abort()
             })
         },
         async chooseImages () {
             const { tempFilePaths = [] } = await this.getImagePaths()
             if (tempFilePaths.length) {
-                this.localList = await Promise.all(tempFilePaths.map(async (src, tempId) => {
+                const list = await Promise.all(tempFilePaths.map(async (src, index) => {
                     // const observable = this.uploadFile(src, this.fileMd5(src))
-                    const item = await this.uploadFile(src, tempId)
-                    console.info(9121, item)
+                    mpx.set(this.localList, index, { src })
+                    const item = await this.uploadFile(src, index)
                     // const item = { src, tempId }
                     // item.subscription = observable.subscribe({
                     //     next ({ total: { percent } }) { item.percent = percent },
@@ -109,7 +151,12 @@ createComponent({
                     // })
                     return item
                 }))
-                console.info(181, this.localList)
+                const _list = list.filter(i => i)
+                console.info(181, list, _list, this.localList)
+                if (_list.length) {
+                    fetch.post('/set/photo/add', { list: _list })
+                    this.triggerEvent('update', { disabled: false })
+                }
             }
             // this.localList = tempFilePaths.map(src => {
             //     const item = { src }
@@ -124,7 +171,7 @@ createComponent({
             const { success, data, msg } = await fetch.get('/get/uptoken')
             if (success) {
                 const { token, url, scope } = data
-                this.imgUrl = url || this.imgUrl
+                this.imgUrlBase = url || this.imgUrlBase
                 this.upToken = token
                 this.imgScope = scope
             } else {
@@ -143,8 +190,60 @@ createComponent({
     left: 5vw;
     width: 90vw;
     bottom: 10px;
-    display: flex;
     position: fixed;
+}
+
+.pic-load{
+    left: 0;
+    width: 100%;
+    bottom: 110%;
+    display: flex;
+    position: absolute;
+
+    .pic-box{
+        width: 10%;
+        height: 45px;
+        display: flex;
+        overflow: hidden;
+        text-align: center;
+        border-radius: 5px;
+        align-items: flex-end;
+        box-shadow: 0 0 3px rgba(#000, 0.9);
+        background: rgba(#000, .8) no-repeat center/100% auto;
+
+        & + .pic-box{
+            margin-left: 1.1%;
+        }
+
+        &.success{
+            width: 0;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .shadow{
+            width: 100%;
+            height: 100%;
+            background: rgba(#000, 0.6);
+            transition: height linear .3s;
+        }
+        .exists{
+            color: #b8b8b8;
+            font-size: 10px;
+            line-height: 45px;
+            background: rgba(#000, 0.6);
+        }
+    }
+    .album{
+        width: 100%;
+        height: auto;
+        min-height: 30px;
+        vertical-align: middle;
+    }
+}
+
+.btn-groups{
+    display: flex;
 
     button {
         padding-left: 0;

@@ -1,8 +1,8 @@
 <template>
     <view class="wrap">
         <view class="img-list">
-            <block wx:if="{{!loading}}">
-                <view hidden="{{showList.length}}" class="no-data"></view>
+            <block wx:if="{{!renderLoading}}">
+                <view wx:if="{{!showList.length}}" class="no-data"></view>
                 <view
                     class="column"
                     wx:key="index"
@@ -19,7 +19,9 @@
                     >
                         <image class="album" src="{{img.src}}" mode="widthFix" lazy-load="true"></image>
                     </view>
-                    <view class="item">{{endSay[index]}}</view>
+                    <view wx:if="{{item.length > 3}}" class="item end">
+                        <p>{{endSay[index]}}</p>
+                    </view>
                 </view>
             </block>
         </view>
@@ -54,6 +56,7 @@ createComponent({
     data: {
         layerShow: false,
         layerImg: null,
+        layerBack: null,
         endSay: ['点击可', '编写任', '意内容'],
         tempList: [],
         showList: [],
@@ -63,21 +66,29 @@ createComponent({
         localImgObj: {}
     },
     computed: {
+        renderLoading () {
+            const { imgList, loading, showList } = this
+            if (loading) {
+                return true
+            }
+            return imgList.length && !showList.length
+        },
         columnWidth () {
             const width = (100 / this.column.length).toFixed(2) + '%'
             return { width, 'max-width': width }
         },
         layerStyle () {
             return {
-                'background-image': `url(${this.layerImg})`
+                'background-image': `url(${this.layerBack})`
             }
         }
     },
     methods: {
-        openLayer ({ src }) {
-            if (!src.indexOf('http')) {
+        openLayer ({ url, src }) {
+            if (!url.indexOf('http')) {
                 this.layerShow = !this.layerShow
-                this.layerImg = src
+                this.layerBack = src
+                this.layerImg = url + '?imageView2/2/w/750'
             }
         },
         closeLayer () {
@@ -173,17 +184,20 @@ createComponent({
             box-shadow: 0 0 5px rgba(#000, .25);
         }
 
-        &:last-child {
+        &.end {
             flex: 1;
-            min-height: 30px;
             display: flex;
-            font-size: 10px;
+            min-height: 30px;
             padding-bottom: 0;
             border-radius: 5px;
             align-items: center;
             justify-content: center;
-            font-family: "Songti SC", "PingFang SC", serif;
             box-shadow: 0 0 5px rgba(#000, .25) inset;
+
+            p{
+                font-size: 10px;
+                font-family: "Songti SC", "PingFang SC", serif;
+            }
         }
     }
 }
@@ -240,6 +254,7 @@ createComponent({
         border-radius: 5px;
         position: relative;
         box-shadow: 0 0 5px rgba(#000, 0.3);
+        background: rgba(#000, 0.6) no-repeat url("../../images/loading.svg") center/20px;
     }
 }
 </style>
