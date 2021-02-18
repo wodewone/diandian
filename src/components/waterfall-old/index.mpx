@@ -1,11 +1,8 @@
 <template>
     <view class="wrap">
         <view class="img-list">
-            <view wx:if="{{loading}}" class="loading">
-                <view class="spin-loading"></view>
-            </view>
-            <block wx:else>
-                <view wx:if="{{!imgList.length}}" class="no-data"></view>
+            <block wx:if="{{!renderLoading}}">
+                <view wx:if="{{!showList.length}}" class="no-data"></view>
                 <view
                     class="column"
                     wx:key="index"
@@ -20,7 +17,6 @@
                         class="item"
                         bindtap="openLayer(img)"
                     >
-                        <view class="checkbox"></view>
                         <image class="album" src="{{img.src}}" mode="widthFix" lazy-load="true"></image>
                     </view>
                     <view wx:if="{{item.length > 3}}" class="item end">
@@ -39,6 +35,9 @@
                 <image class="photograph" mode="widthFix" src="{{layerImg}}"></image>
             </view>
         </view>
+        <view class="temp-load-box">
+            <image wx:for="{{tempList}}" wx:key="index" src="{{item.src}}" bindload="loadImg" binderror="loadImg" data-index="{{index}}" />
+        </view>
     </view>
 </template>
 
@@ -52,10 +51,7 @@ createComponent({
             type: Array,
             default: null
         },
-        loading: {
-            type: Boolean,
-            default: true
-        }
+        loading: Boolean
     },
     data: {
         layerShow: false,
@@ -64,15 +60,27 @@ createComponent({
         endSay: ['点击可', '编写任', '意内容'],
         tempList: [],
         showList: [],
-        column: [0, 0, 0]
+        column: [0, 0, 0],
+        imgCount: 0,
+
+        localImgObj: {}
     },
     computed: {
+        renderLoading () {
+            const { imgList, loading, showList } = this
+            if (loading) {
+                return true
+            }
+            return imgList.length && !showList.length
+        },
         columnWidth () {
             const width = (100 / this.column.length).toFixed(2) + '%'
             return { width, 'max-width': width }
         },
         layerStyle () {
-            return { 'background-image': `url(${this.layerBack})` }
+            return {
+                'background-image': `url(${this.layerBack})`
+            }
         }
     },
     methods: {
@@ -86,21 +94,37 @@ createComponent({
         closeLayer () {
             this.layerShow = !this.layerShow
         },
-        renderData (list) {
-            const _list = list.reduce((so, item) => {
-                const { height, width } = item
-                const h = Math.ceil(height / width * 100)
-                const minColumn = Math.min(...this.column)
-                const fIndex = this.column.findIndex(i => i === minColumn)
+        loadImg ({ detail: { width, height }, target }) {
+            const { dataset: { index } = {} } = target || {}
+            this.imgCount++
+            if (height) {
+                this.tempList[index].height = Math.ceil(height * 100 / width)
+            } else {
+                this.tempList[index].height = 100
+            }
+        },
+        renderData (arrList = [], unshift = false) {
+            const { column } = this
+            const list = arrList.reduce((so, item) => {
+                const { height = 0 } = item
+                const minColumn = Math.min(...column)
+                const fIndex = column.findIndex(i => i === minColumn)
                 const index = fIndex >= 0 ? fIndex : 0
-                this.column[index] += h
+                this.column[index] += height
                 so[index] = so[index] || []
                 so[index].push(item)
                 return so
             }, [])
-            _list.forEach((item, index) => {
-                mpx.set(this.showList, index, [])
-                this.showList[index].push(...item)
+            list.forEach((item, index) => {
+                if (!this.showList[index]) {
+                    mpx.set(this.showList, index, [])
+                }
+                // this.showList[index] = this.showList[index] || []
+                if (unshift) {
+                    this.showList[index].unshift(...item)
+                } else {
+                    this.showList[index].push(...item)
+                }
             })
             console.info(9811, list, this.column, this.showList)
             // this.triggerEvent('upload', { disabled: false })
@@ -108,7 +132,15 @@ createComponent({
     },
     watch: {
         imgList (v) {
-            v && v.length && this.renderData(v)
+            v && v.length && (this.tempList = v)
+        },
+        imgCount (n) {
+            const len = this.tempList.length
+            if (n && len && n === len) {
+                this.renderData(this.tempList)
+                this.tempList = []
+                this.imgCount = 0
+            }
         }
     }
 })
@@ -118,25 +150,14 @@ createComponent({
 .wrap{
     width: 100vw;
 }
+.temp-load-box{
+    display: none;
+}
 .img-list {
     display: flex;
     padding: 0 5px;
     overflow: auto;
-    min-height: 65vh;
-
-    .loading {
-        height: 65vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        .spin-loading {
-            width: 50px;
-            height: 50px;
-            border-radius: 5px;
-            background-color: rgba(#000, 0.2);
-        }
-    }
+    min-height: 50vh;
 
     .no-data{
         background: url("../../images/pic-photo-none.png") no-repeat center/50%;
@@ -158,9 +179,9 @@ createComponent({
 
         .album {
             width: 100%;
-            /*background: #d4d4d4;*/
+            background: #d4d4d4;
             vertical-align: middle;
-            /*box-shadow: 0 0 5px rgba(#000, .25);*/
+            box-shadow: 0 0 5px rgba(#000, .25);
         }
 
         &.end {
@@ -240,7 +261,6 @@ createComponent({
 
 <script type="application/json">
     {
-        "component": true,
-        "styleIsolation": "apply-shared"
+        "component": true
     }
 </script>

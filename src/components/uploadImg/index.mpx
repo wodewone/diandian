@@ -1,5 +1,5 @@
 <template>
-    <view wx:if="{{upToken}}" class="fix-box">
+    <view class="fix-box">
         <view
             wx:if="{{localList.length}}"
             class="pic-load">
@@ -24,8 +24,6 @@
 <script>
 import mpx, { createComponent } from '@mpxjs/core'
 import fetch from '../../plugins/fetch'
-import md5 from 'md5'
-// import * as qiniu from 'qiniu-js'
 
 createComponent({
     properties: {
@@ -57,52 +55,24 @@ createComponent({
         getImagePaths (count = 5, sizeType = ['original']) {
             return fetch.wx('chooseImage', { count, sizeType })
         },
-        getFileStream (filePath, encoding = 'binary') {
-            return new Promise((resolve, reject) => {
-                wx.getFileSystemManager().readFile({
-                    filePath,
-                    encoding,
-                    success (res) {
-                        resolve(res.data)
-                    },
-                    fail (res) {
-                        reject(res)
-                    }
-                })
-            })
+        getFileName (filePath = '') {
+            const { imgScope, imgList } = this
+            if (filePath) {
+                const keys = filePath.split('/')
+                return `${imgScope}/${keys[keys.length - 1]}`
+            } else {
+                return `${imgScope}/${imgList.length}`
+            }
         },
-        fileMd5 (filePath) {
-            const { getFileStream } = this
-            return new Promise(async (resolve, reject) => {
-                try {
-                    const fileStream = await getFileStream(filePath)
-                    const md5Key = md5(fileStream)
-                    resolve(md5Key)
-                } catch (error) {
-                    reject(error)
-                }
-            })
-        },
-        // uploadFile (file, key) {
-        //     const { upToken: token } = this
-        //     if (!token) {
-        //         return false
-        //     }
-        //     const putExtra = {}
-        //     const config = {
-        //         useCdnDomain: true,
-        //         region: qiniu.region.z1
-        //     }
-        //     return qiniu.upload(file, key, token, putExtra, config)
-        // },
         uploadFile (file, index) {
-            const { upToken: token, imgScope, imgList } = this
+            const { upToken: token } = this
             if (!token) {
                 return false
             }
+            const key = this.getFileName(file)
             const formData = {
                 token,
-                key: `${imgScope}/${imgList.length + index}`
+                key
             }
             console.info(99811, file)
             return new Promise((resolve, reject) => {
@@ -112,10 +82,10 @@ createComponent({
                         mpx.set(local, 'exists', true)
                         return resolve()
                     }
-                    const { key, hash } = JSON.parse(data)
+                    const { key, hash, width, height } = JSON.parse(data)
                     // const src = `${imgUrlBase}/${key}`
                     mpx.set(local, 'success', true)
-                    resolve({ key, hash })
+                    resolve({ key, hash, width, height })
                 }
                 const uploadTask = wx.uploadFile({
                     url: 'https://up-z1.qiniup.com',
@@ -138,18 +108,9 @@ createComponent({
             const { tempFilePaths = [] } = await this.getImagePaths()
             if (tempFilePaths.length) {
                 const list = await Promise.all(tempFilePaths.map(async (src, index) => {
-                    // const observable = this.uploadFile(src, this.fileMd5(src))
-                    mpx.set(this.localList, index, { src })
-                    const item = await this.uploadFile(src, index)
-                    // const item = { src, tempId }
-                    // item.subscription = observable.subscribe({
-                    //     next ({ total: { percent } }) { item.percent = percent },
-                    //     error ({ message }) {
-                    //         item.fail = true
-                    //         message && wx.showToast({ title: message, icon: 'none', duration: 2000 })
-                    //     }
-                    // })
-                    return item
+                    const key = index + ''
+                    mpx.set(this.localList, key, { src })
+                    return this.uploadFile(src, index)
                 }))
                 const _list = list.filter(i => i)
                 console.info(181, list, _list, this.localList)
@@ -158,14 +119,6 @@ createComponent({
                     this.triggerEvent('update', { disabled: false })
                 }
             }
-            // this.localList = tempFilePaths.map(src => {
-            //     const item = { src }
-            //     item.time = 1
-            //     setInterval(() => {
-            //         item.time++
-            //     }, 2000)
-            //     return item
-            // })
         },
         async fetchUpToken () {
             const { success, data, msg } = await fetch.get('/get/uptoken')

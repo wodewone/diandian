@@ -122,7 +122,6 @@
     }
 
     .spin-loading {
-        min-height: 100px;
         background: url("./images/loading.svg") no-repeat center/20px;
     }
 </style>

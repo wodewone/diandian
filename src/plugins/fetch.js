@@ -1,5 +1,5 @@
-// const baseUrl = 'http://localhost:3001/point/v1'
-const baseUrl = 'https://www.wodewone.com/point/v1'
+const baseUrl = 'http://localhost:3001/point/v1'
+// const baseUrl = 'https://www.wodewone.com/point/v1'
 
 let header = null
 
