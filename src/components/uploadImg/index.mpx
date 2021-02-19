@@ -2,7 +2,8 @@
     <view class="fix-box">
         <view
             wx:if="{{localList.length}}"
-            class="pic-load">
+            class="pic-load"
+        >
             <view
                 wx:key="index"
                 wx:for="{{localList}}"
@@ -16,14 +17,14 @@
         </view>
         <view class="btn-groups">
             <button class="btn add" type="primary" bindtap="chooseImages" disabled="{{btnDisabled}}">上传新照片</button>
-            <button class="btn edit" disabled="{{!imgList.length || btnDisabled}}">编辑({{ imgList.length }}/{{ maxNum }})</button>
         </view>
     </view>
 </template>
 
 <script>
 import mpx, { createComponent } from '@mpxjs/core'
-import fetch from '../../plugins/fetch'
+import store from '@/store'
+import fetch from '@/plugins/fetch'
 
 createComponent({
     properties: {
@@ -33,14 +34,19 @@ createComponent({
         }
     },
     data: {
-        maxNum: 200,
         btnDisabled: false,
-        imgUrlBase: 'http://cdm.wodewone.com',
-        imgScope: null,
-        upToken: null,
-
-        imgProgress: {},
         localList: []
+    },
+    computed: {
+        ...store.mapState([
+            'photoData'
+        ]),
+        upToken () {
+            return this.photoData.upToken
+        },
+        imgScope () {
+            return this.photoData.scope
+        }
     },
     methods: {
         loadEvent (index) {
@@ -83,7 +89,6 @@ createComponent({
                         return resolve()
                     }
                     const { key, hash, width, height } = JSON.parse(data)
-                    // const src = `${imgUrlBase}/${key}`
                     mpx.set(local, 'success', true)
                     resolve({ key, hash, width, height })
                 }
@@ -115,32 +120,20 @@ createComponent({
                 const _list = list.filter(i => i)
                 console.info(181, list, _list, this.localList)
                 if (_list.length) {
-                    fetch.post('/set/photo/add', { list: _list })
+                    await fetch.post('/set/photo/add', { list: _list })
                     this.triggerEvent('update', { disabled: false })
                 }
-            }
-        },
-        async fetchUpToken () {
-            const { success, data, msg } = await fetch.get('/get/uptoken')
-            if (success) {
-                const { token, url, scope } = data
-                this.imgUrlBase = url || this.imgUrlBase
-                this.upToken = token
-                this.imgScope = scope
-            } else {
-                msg && wx.showToast({ title: msg, icon: 'none', duration: 2000 })
             }
         }
     },
     ready () {
-        this.fetchUpToken()
     }
 })
 </script>
 
 <style lang="scss">
 .fix-box {
-    left: 5vw;
+    left: 10px;
     width: 90vw;
     bottom: 10px;
     position: fixed;
@@ -199,20 +192,14 @@ createComponent({
     display: flex;
 
     button {
+        margin: 0;
         padding-left: 0;
         padding-right: 0;
         font-size: 12px;
         box-shadow: 0 0 5px rgba(#000, 0.5);
 
         &.add {
-            flex: 1;
-            margin-right: 2.5vw;
-        }
-
-        &.edit {
-            width: 90px;
-            color: #fff;
-            background: #327cc3;
+            width: 55vw;
         }
 
         &.btn[disabled] {

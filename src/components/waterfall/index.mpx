@@ -18,13 +18,13 @@
                         wx:for-index="idx"
                         wx:for-item="img"
                         class="item"
-                        bindtap="openLayer(img)"
+                        bindtap="eventItem(img)"
                     >
-                        <view class="checkbox"></view>
+                        <view wx:if="{{isEdit}}" class="check-option"></view>
                         <image class="album" src="{{img.src}}" mode="widthFix" lazy-load="true"></image>
                     </view>
                     <view wx:if="{{item.length > 3}}" class="item end">
-                        <p>{{endSay[index]}}</p>
+                        <text class="text">{{endSay[index]}}</text>
                     </view>
                 </view>
             </block>
@@ -39,12 +39,14 @@
                 <image class="photograph" mode="widthFix" src="{{layerImg}}"></image>
             </view>
         </view>
+        <button class="btn-edit" disabled="{{!imgList.length || btnDisabled}}" bindtap="eventEdit">编辑({{ imgList.length }}/{{ maxNum }})</button>
     </view>
 </template>
 
 <script>
 import mpx, { createComponent } from '@mpxjs/core'
-// import fetch from '../../plugins/fetch'
+// import fetch from '@/plugins/fetch'
+import store from '@/store'
 
 createComponent({
     properties: {
@@ -62,11 +64,19 @@ createComponent({
         layerImg: null,
         layerBack: null,
         endSay: ['点击可', '编写任', '意内容'],
-        tempList: [],
         showList: [],
-        column: [0, 0, 0]
+        column: [0, 0, 0],
+
+        isEdit: false,
+        editList: []
     },
     computed: {
+        ...store.mapState([
+            'photoData'
+        ]),
+        maxNum () {
+            return this.photoData.max
+        },
         columnWidth () {
             const width = (100 / this.column.length).toFixed(2) + '%'
             return { width, 'max-width': width }
@@ -76,8 +86,15 @@ createComponent({
         }
     },
     methods: {
-        openLayer ({ url, src }) {
-            if (!url.indexOf('http')) {
+        eventEdit () {
+            this.isEdit = !this.isEdit
+        },
+        eventItem ({ url, src, hash: iHash }) {
+            if (this.isEdit) {
+                const fIndex = this.editList.findIndex(({ hash }) => hash === iHash)
+                fIndex > -1 ? this.editList.splice(fIndex, 1) : this.editList.push(iHash)
+                console.info(99, this.editList)
+            } else {
                 this.layerShow = !this.layerShow
                 this.layerBack = src
                 this.layerImg = url + '?imageView2/2/w/750'
@@ -147,6 +164,29 @@ createComponent({
         padding: 5px;
         display: flex;
         flex-direction: column;
+
+        .check-option{
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            position: absolute;
+            align-items: center;
+            justify-content: center;
+            background: rgba(#000, 0.3);
+
+            &:after{
+                content: '';
+                top: 5px;
+                right: 5px;
+                width: 10px;
+                height: 10px;
+                position: absolute;
+                border-radius: 50%;
+                border: 2px solid #418ed4;
+            }
+        }
     }
 
     .item {
@@ -173,7 +213,7 @@ createComponent({
             justify-content: center;
             box-shadow: 0 0 5px rgba(#000, .25) inset;
 
-            p{
+            .text{
                 font-size: 10px;
                 font-family: "Songti SC", "PingFang SC", serif;
             }
@@ -235,6 +275,21 @@ createComponent({
         box-shadow: 0 0 5px rgba(#000, 0.3);
         background: rgba(#000, 0.6) no-repeat url("../../images/loading.svg") center/20px;
     }
+}
+
+button.btn-edit {
+    margin: 0;
+    z-index: 2;
+    right: 10px;
+    width: 35vw;
+    color: #fff;
+    bottom: 10px;
+    position: fixed;
+    font-size: 12px;
+    padding-left: 0;
+    padding-right: 0;
+    background: #327cc3;
+    box-shadow: 0 0 5px rgba(#000, 0.5);
 }
 </style>
 

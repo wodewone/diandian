@@ -11,6 +11,7 @@
 
 <script>
 import { createPage } from '@mpxjs/core'
+import store from '@/store'
 import fetch from '../../plugins/fetch'
 
 createPage({
@@ -21,7 +22,6 @@ createPage({
     },
     methods: {
         eventUpdate () {
-            // wx.pageScrollTo({ scrollTop: 9999999, selector: '.img-list' })
             this.imgList = []
             this.fetchImgList()
         },
@@ -50,6 +50,7 @@ createPage({
     onShow () {
         if (!this.imgList.length) {
             this.fetchImgList()
+            store.dispatch('getPhotoToken')
         }
     },
     onPullDownRefresh () {
