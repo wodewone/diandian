@@ -43,10 +43,13 @@ createComponent({
         ...store.mapState([
             'photoData'
         ]),
+        upMax () {
+            return this.photoData.max
+        },
         upToken () {
             return this.photoData.token
         },
-        imgScope () {
+        upScope () {
             return this.photoData.scope
         }
     },
@@ -64,12 +67,12 @@ createComponent({
             return fetch.wx('chooseImage', { count, sizeType })
         },
         getFileName (filePath = '') {
-            const { imgScope, imgList } = this
+            const { upScope, imgList } = this
             if (filePath) {
                 const keys = filePath.split('/')
-                return `${imgScope}/${keys[keys.length - 1]}`
+                return `${upScope}/${keys[keys.length - 1]}`
             } else {
-                return `${imgScope}/${imgList.length}`
+                return `${upScope}/${imgList.length}`
             }
         },
         uploadFile (file, index) {
@@ -115,7 +118,9 @@ createComponent({
             })
         },
         async chooseImages () {
-            const { tempFilePaths = [] } = await this.getImagePaths()
+            const { upMax, imgList } = this
+            const count = upMax - imgList.length > 9 ? 9 : upMax - imgList.length
+            const { tempFilePaths = [] } = await this.getImagePaths(count)
             if (tempFilePaths.length) {
                 const list = await Promise.all(tempFilePaths.map(async (src, index) => {
                     mpx.set(this.localList, index, { src })
