@@ -53,6 +53,7 @@
             }
         },
         async onLaunch () {
+        // async onLoad () {
             // 展示本地存储能力
             const logs = wx.getStorageSync('logs') || []
             logs.unshift(Date.now())
@@ -80,7 +81,8 @@
     }
 
     button[disabled][type] {
-        background: #bbcac5;
+        color: rgba(0,0,0,0.2);
+        background-color: #f2f2f2;
     }
 
     page {
@@ -124,6 +126,22 @@
     .spin-loading {
         background: url("./images/loading.svg") no-repeat center/20px;
     }
+
+    checkbox .wx-checkbox-input {
+        width: 20px;
+        height: 20px;
+        border: none;
+        border-radius: 50%;
+
+        &.wx-checkbox-input-checked {
+            background: #07c160;
+
+            &:before{
+                color: #fff;
+            }
+        }
+    }
+
 </style>
 
 <script type="application/json">

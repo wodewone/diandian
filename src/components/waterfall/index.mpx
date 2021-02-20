@@ -13,14 +13,16 @@
                     wx:style="{{columnWidth}}"
                 >
                     <view
-                        wx:key="idx"
+                        wx:key="hash"
                         wx:for="{{item || []}}"
                         wx:for-index="idx"
                         wx:for-item="img"
                         class="item"
                         bindtap="eventItem(img)"
                     >
-                        <view wx:if="{{isEdit}}" class="check-option"></view>
+                        <label wx:if="{{isEdit}}" class="check-option">
+                            <checkbox class="checkbox"/>
+                        </label>
                         <image class="album" src="{{img.src}}" mode="widthFix" lazy-load="true"></image>
                     </view>
                     <view wx:if="{{item.length > 3}}" class="item end">
@@ -36,16 +38,24 @@
             wx:if="layerImg"
         >
             <view class="inner" wx:style="{{layerStyle}}">
-                <image class="photograph" mode="widthFix" src="{{layerImg}}"></image>
+                <image class="photograph {{isLoadingImg ? 'load' : ''}}" mode="widthFix" src="{{layerImg}}" bindload="loadImg"></image>
             </view>
         </view>
-        <button class="btn-edit" disabled="{{!imgList.length || btnDisabled}}" bindtap="eventEdit">编辑({{ imgList.length }}/{{ maxNum }})</button>
+        <view wx:if="{{!loading}}" class="btn-group">
+            <button wx:if="{{isEdit}}" class="btn del" bindtap="eventDel" disabled="{{!editList.length}}">
+                删除 ({{editList.length}})
+            </button>
+            <button class="btn {{isEdit ? 'cancel' : 'edit'}}" disabled="{{!imgList.length}}" bindtap="eventEdit">
+                <block wx:if="{{!isEdit}}">编辑({{ imgList.length }}/{{ maxNum }})</block>
+                <block wx:else>取消</block>
+            </button>
+        </view>
     </view>
 </template>
 
 <script>
 import mpx, { createComponent } from '@mpxjs/core'
-// import fetch from '@/plugins/fetch'
+import fetch from '@/plugins/fetch'
 import store from '@/store'
 
 createComponent({
@@ -64,8 +74,11 @@ createComponent({
         layerImg: null,
         layerBack: null,
         endSay: ['点击可', '编写任', '意内容'],
+        isLoadingImg: true,
+
         showList: [],
-        column: [0, 0, 0],
+        columnNum: 2,
+        column: [],
 
         isEdit: false,
         editList: []
@@ -86,15 +99,37 @@ createComponent({
         }
     },
     methods: {
-        eventEdit () {
+        loadImg () {
+            this.isLoadingImg = false
+        },
+        async eventDel () {
+            const { confirm } = await fetch.wx('showModal', {
+                title: '提示',
+                content: '确认删除[' + this.editList.length + ']张照片？'
+            })
+            if (confirm) {
+                const list = this.editList
+                const { success, msg } = await fetch.post('/set/photo/del', { list })
+                if (success) {
+                    this.editList = []
+                    this.isEdit = false
+                    this.triggerEvent('update', true)
+                } else {
+                    msg && wx.showToast({ title: msg, icon: 'none', duration: 2000 })
+                }
+            }
+        },
+        async eventEdit () {
+            this.editList = []
             this.isEdit = !this.isEdit
         },
-        eventItem ({ url, src, hash: iHash }) {
+        eventItem (item) {
+            const { url, src, hash } = item
             if (this.isEdit) {
-                const fIndex = this.editList.findIndex(({ hash }) => hash === iHash)
-                fIndex > -1 ? this.editList.splice(fIndex, 1) : this.editList.push(iHash)
-                console.info(99, this.editList)
+                const fIndex = this.editList.findIndex((v) => v === hash)
+                fIndex > -1 ? this.editList.splice(fIndex, 1) : this.editList.push(hash)
             } else {
+                this.isLoadingImg = true
                 this.layerShow = !this.layerShow
                 this.layerBack = src
                 this.layerImg = url + '?imageView2/2/w/750'
@@ -104,11 +139,13 @@ createComponent({
             this.layerShow = !this.layerShow
         },
         renderData (list) {
+            if (!list || !list.length) {
+                return false
+            }
             const _list = list.reduce((so, item) => {
-                const { height, width } = item
+                const { height = 0, width = 0 } = item
                 const h = Math.ceil(height / width * 100)
-                const minColumn = Math.min(...this.column)
-                const fIndex = this.column.findIndex(i => i === minColumn)
+                const fIndex = this.column.findIndex(i => i === Math.min(...this.column))
                 const index = fIndex >= 0 ? fIndex : 0
                 this.column[index] += h
                 so[index] = so[index] || []
@@ -119,13 +156,15 @@ createComponent({
                 mpx.set(this.showList, index, [])
                 this.showList[index].push(...item)
             })
-            console.info(9811, list, this.column, this.showList)
-            // this.triggerEvent('upload', { disabled: false })
         }
     },
     watch: {
         imgList (v) {
-            v && v.length && this.renderData(v)
+            if (v && v.length) {
+                this.showList = []
+                this.column = new Array(this.columnNum).fill(0)
+            }
+            this.renderData(v)
         }
     }
 })
@@ -137,7 +176,7 @@ createComponent({
 }
 .img-list {
     display: flex;
-    padding: 0 5px;
+    padding: 0 1vw;
     overflow: auto;
     min-height: 65vh;
 
@@ -155,37 +194,34 @@ createComponent({
         }
     }
 
-    .no-data{
+    .no-data {
         background: url("../../images/pic-photo-none.png") no-repeat center/50%;
     }
 
     .column {
         flex: 1;
-        padding: 5px;
+        padding: 1vw;
         display: flex;
         flex-direction: column;
+    }
 
-        .check-option{
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
+    .check-option{
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        position: absolute;
+        align-items: center;
+        justify-content: center;
+        background: rgba(#000, 0.3);
+
+        .checkbox{
+            top: 5px;
+            right: 15px;
+            width: 10px;
+            height: 10px;
             position: absolute;
-            align-items: center;
-            justify-content: center;
-            background: rgba(#000, 0.3);
-
-            &:after{
-                content: '';
-                top: 5px;
-                right: 5px;
-                width: 10px;
-                height: 10px;
-                position: absolute;
-                border-radius: 50%;
-                border: 2px solid #418ed4;
-            }
         }
     }
 
@@ -273,23 +309,48 @@ createComponent({
         border-radius: 5px;
         position: relative;
         box-shadow: 0 0 5px rgba(#000, 0.3);
-        background: rgba(#000, 0.6) no-repeat url("../../images/loading.svg") center/20px;
+        background: rgba(#000, 0.6) no-repeat center/20px;
+
+        &.load {
+            background-image: url("../../images/loading.svg");
+        }
     }
 }
 
-button.btn-edit {
-    margin: 0;
-    z-index: 2;
-    right: 10px;
-    width: 35vw;
-    color: #fff;
-    bottom: 10px;
-    position: fixed;
-    font-size: 12px;
-    padding-left: 0;
-    padding-right: 0;
-    background: #327cc3;
-    box-shadow: 0 0 5px rgba(#000, 0.5);
+.btn-group {
+    .btn {
+        margin: 0;
+        z-index: 2;
+        right: 2vw;
+        width: 46vw;
+        color: #fff;
+        bottom: 8px;
+        position: fixed;
+        font-size: 12px;
+        padding-left: 0;
+        padding-right: 0;
+        background-color: #f2f2f2;
+        box-shadow: 0 0 5px rgba(#000, 0.3);
+
+        &.edit {
+            background: #327cc3;
+        }
+
+        &.del {
+            left: 2vw;
+            right: auto;
+            color: #fa5151;
+        }
+
+        &.cancel {
+            background: #327cc3;
+            /*background: #a9adb5;*/
+        }
+
+        &[disabled] {
+            color: rgba(0, 0, 0, 0.2);
+        }
+    }
 }
 </style>
 

@@ -1,5 +1,5 @@
 <template>
-    <view class="fix-box">
+    <view wx:if="{{upToken}}" class="fix-box">
         <view
             wx:if="{{localList.length}}"
             class="pic-load"
@@ -11,8 +11,10 @@
                 wx:style="background-image: url({{item.src}})"
                 bindtap="loadEvent(index)"
             >
-                <view hidden="{{item.exists}}" class="shadow" wx:style="height: {{item.progress}}%"></view>
-                <view hidden="{{!item.exists}}" class="exists">已存在</view>
+                <view hidden="{{item.error}}" class="shadow" wx:style="height: {{item.progress}}%"></view>
+                <view hidden="{{!item.error}}" class="exists">
+                    <text class="text">{{item.error}}</text>
+                </view>
             </view>
         </view>
         <view class="btn-groups">
@@ -42,7 +44,7 @@ createComponent({
             'photoData'
         ]),
         upToken () {
-            return this.photoData.upToken
+            return this.photoData.token
         },
         imgScope () {
             return this.photoData.scope
@@ -58,7 +60,7 @@ createComponent({
                 console.warn(e)
             }
         },
-        getImagePaths (count = 5, sizeType = ['original']) {
+        getImagePaths (count = 9, sizeType = ['original']) {
             return fetch.wx('chooseImage', { count, sizeType })
         },
         getFileName (filePath = '') {
@@ -80,17 +82,21 @@ createComponent({
                 token,
                 key
             }
-            console.info(99811, file)
             return new Promise((resolve, reject) => {
                 const local = this.localList[index]
-                const success = ({ data, statusCode }) => {
-                    if (statusCode === 614) {
-                        mpx.set(local, 'exists', true)
-                        return resolve()
+                const success = ({ data, statusCode: code }) => {
+                    if (code === 200) {
+                        const { key, hash, width, height } = JSON.parse(data)
+                        mpx.set(local, 'success', true)
+                        return resolve({ key, hash, width, height })
+                    } else if (code === 614) {
+                        mpx.set(local, 'error', '已存在')
+                    } else if (code === 403) {
+                        mpx.set(local, 'error', '不支持类型')
+                    } else if (code === 413) {
+                        mpx.set(local, 'error', '文件太大')
                     }
-                    const { key, hash, width, height } = JSON.parse(data)
-                    mpx.set(local, 'success', true)
-                    resolve({ key, hash, width, height })
+                    return resolve(false)
                 }
                 const uploadTask = wx.uploadFile({
                     url: 'https://up-z1.qiniup.com',
@@ -99,7 +105,6 @@ createComponent({
                     formData: formData,
                     success,
                     fail (res) {
-                        console.info('999 fail:', res)
                         reject(res)
                     }
                 })
@@ -113,12 +118,10 @@ createComponent({
             const { tempFilePaths = [] } = await this.getImagePaths()
             if (tempFilePaths.length) {
                 const list = await Promise.all(tempFilePaths.map(async (src, index) => {
-                    const key = index + ''
-                    mpx.set(this.localList, key, { src })
+                    mpx.set(this.localList, index, { src })
                     return this.uploadFile(src, index)
                 }))
                 const _list = list.filter(i => i)
-                console.info(181, list, _list, this.localList)
                 if (_list.length) {
                     await fetch.post('/set/photo/add', { list: _list })
                     this.triggerEvent('update', { disabled: false })
@@ -133,9 +136,9 @@ createComponent({
 
 <style lang="scss">
 .fix-box {
-    left: 10px;
+    left: 2vw;
     width: 90vw;
-    bottom: 10px;
+    bottom: 8px;
     position: fixed;
 }
 
@@ -174,10 +177,18 @@ createComponent({
             transition: height linear .3s;
         }
         .exists{
-            color: #b8b8b8;
-            font-size: 10px;
-            line-height: 45px;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             background: rgba(#000, 0.6);
+
+            .text{
+                color: #b8b8b8;
+                font-size: 10px;
+                line-height: 1.2;
+            }
         }
     }
     .album{
@@ -191,7 +202,7 @@ createComponent({
 .btn-groups{
     display: flex;
 
-    button {
+    .btn {
         margin: 0;
         padding-left: 0;
         padding-right: 0;
@@ -199,13 +210,13 @@ createComponent({
         box-shadow: 0 0 5px rgba(#000, 0.5);
 
         &.add {
-            width: 55vw;
+            width: 46vw;
         }
 
-        &.btn[disabled] {
-            color: #a5a2a2;
-            background: #d2d8e2;
-            box-shadow: 0 0 3px rgba(#000, 0.3);
+        &[disabled] {
+            color: rgba(0,0,0,0.2);
+            background-color: #f2f2f2;
+            box-shadow: 0 0 5px rgba(#000, 0.3);
         }
     }
 }

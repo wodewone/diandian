@@ -11,6 +11,14 @@ const _http = (method, api, data) => {
                 'Authorization': wx.getStorageSync('token')
             }
         }
+        if (typeof data === 'object') {
+            for (const key in data) {
+                const k = data[key]
+                if (k === null || k === undefined) {
+                    delete data[key]
+                }
+            }
+        }
         wx.request({
             url: baseUrl + api,
             data,
@@ -35,10 +43,11 @@ const _http = (method, api, data) => {
         return { success: false, data: {}, code: 500 }
     })
 }
-const _wx = (method, ...arg) => {
+const _wx = (method, arg) => {
     return new Promise((resolve, reject) => {
+        const options = typeof arg === 'object' ? arg : {}
         wx[method]({
-            ...arg,
+            ...options,
             success (res) {
                 resolve(res)
             },
