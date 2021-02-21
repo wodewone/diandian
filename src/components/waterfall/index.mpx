@@ -1,7 +1,7 @@
 <template>
     <view class="wrap">
         <view class="img-list">
-            <view wx:if="{{loading}}" class="loading">
+            <view wx:if="{{!imgList.length && loading}}" class="loading">
                 <view class="spin-loading"></view>
             </view>
             <block wx:else>
@@ -13,7 +13,7 @@
                     wx:style="{{columnWidth}}"
                 >
                     <view
-                        wx:key="hash"
+                        wx:key="key"
                         wx:for="{{item || []}}"
                         wx:for-index="idx"
                         wx:for-item="img"
@@ -25,7 +25,7 @@
                         </label>
                         <image class="album" src="{{img.src}}" mode="widthFix" lazy-load="true"></image>
                     </view>
-                    <view wx:if="{{item.length > 3}}" class="item end">
+                    <view wx:if="{{latest && item.length > 3}}" class="item end">
                         <text class="text">{{endSay[index]}}</text>
                     </view>
                 </view>
@@ -67,6 +67,10 @@ createComponent({
         loading: {
             type: Boolean,
             default: true
+        },
+        latest: {
+            type: Boolean,
+            default: false
         }
     },
     data: {
@@ -82,6 +86,10 @@ createComponent({
 
         isEdit: false,
         editList: []
+    },
+    created () {
+        this.showList = []
+        this.column = new Array(this.columnNum).fill(0)
     },
     computed: {
         ...store.mapState([
@@ -113,7 +121,7 @@ createComponent({
                 if (success) {
                     this.editList = []
                     this.isEdit = false
-                    this.triggerEvent('update', true)
+                    this.triggerEvent('refresh')
                 } else {
                     msg && wx.showToast({ title: msg, icon: 'none', duration: 2000 })
                 }
@@ -146,7 +154,8 @@ createComponent({
                 const { height = 0, width = 0 } = item
                 const h = Math.ceil(height / width * 100)
                 const fIndex = this.column.findIndex(i => i === Math.min(...this.column))
-                const index = fIndex >= 0 ? fIndex : 0
+                console.info(h, Math.min(...this.column), fIndex)
+                const index = fIndex >= 0 ? fIndex : 1
                 this.column[index] += h
                 so[index] = so[index] || []
                 so[index].push(item)
@@ -160,11 +169,7 @@ createComponent({
     },
     watch: {
         imgList (v) {
-            if (v && v.length) {
-                this.showList = []
-                this.column = new Array(this.columnNum).fill(0)
-            }
-            this.renderData(v)
+            v && v.length && this.renderData(v)
         }
     }
 })

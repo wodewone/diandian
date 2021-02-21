@@ -3,9 +3,10 @@
 <!--        <include src="../../components/template/header.wxml"></include>-->
         <view class="container">
 <!--            <petal class="petal-bg"></petal>-->
-            <waterfall imgList="{{imgList}}" localList="{{localList}}" loading="{{loading}}" class="wrap" bind:update="eventUpdate"></waterfall>
+            <waterfall imgList="{{imgList}}" localList="{{localList}}" loading="{{loading}}" latest="{{latest}}" class="wrap" bind:refresh="refreshList"></waterfall>
+            <view wx:if="{{imgList.length && !latest}}" class="spin-loading"></view>
         </view>
-        <uploadImg imgList="{{imgList}}" bind:update="eventUpdate"></uploadImg>
+        <uploadImg imgList="{{imgList}}" bind:update="updateList"></uploadImg>
     </view>
 </template>
 
@@ -16,41 +17,41 @@ import fetch from '../../plugins/fetch'
 
 createPage({
     data: {
+        limit: 21,
         loading: true,
         imgList: [],
         localList: [],
-        latest: false
+        latest: false,
+        offset: 0
     },
     methods: {
-        eventUpdate (isInit) {
-            if (isInit) {
-                this.imgList = []
-            }
+        updateList () {
             this.fetchImgList()
+        },
+        refreshList () {
+            this.fetchImgList(this.offset)
         },
         eventUpload ({ detail }) {
             const { disabled = false } = detail
             console.info('eventUpload: ', detail)
             this.btnDisabled = disabled
         },
-        async fetchImgList () {
+        async fetchImgList (offsetVal) {
             this.loading = true
-            const { imgList } = this
-            const limit = 21
+            const { imgList, limit } = this
             const len = imgList.length
-            const offset = len ? len >= limit ? len - 1 : len : null
-            // const { hash = null } = imgList[imgList.length - 2] || {}
-            const { success, data } = await fetch.get('/get/photo/list', { limit, offset })
+            this.offset = offsetVal || len >= limit ? len : null
+            const { success, data } = await fetch.get('/get/photo/list', { limit, offset: this.offset })
             if (success) {
                 this.latest = data.length < limit
-                data.map((o) => {
-                    const { url } = o
-                    const item = {
+                const list = this.latest ? data : data.slice(0, limit - 1)
+                const newData = list.map((o) => {
+                    return {
                         ...o,
-                        src: url + '?imageView2/2/w/200/q/50'
+                        src: o.url + '?imageView2/2/w/200/q/50'
                     }
-                    this.imgList.push(item)
                 })
+                this.imgList = this.imgList.concat(newData)
             }
             this.loading = false
         }
@@ -86,6 +87,10 @@ createPage({
 
     .container{
         min-height: 100%;
+
+        .spin-loading{
+            height: 50px;
+        }
     }
 </style>
 

@@ -11,8 +11,8 @@
                 wx:style="background-image: url({{item.src}})"
                 bindtap="loadEvent(index)"
             >
-                <view hidden="{{item.error}}" class="shadow" wx:style="height: {{item.progress}}%"></view>
-                <view hidden="{{!item.error}}" class="exists">
+                <view wx:if="{{!item.error}}" class="shadow" wx:style="height: {{item.progress}}%"></view>
+                <view wx:else class="exists">
                     <text class="text">{{item.error}}</text>
                 </view>
             </view>
@@ -128,8 +128,14 @@ createComponent({
                 }))
                 const _list = list.filter(i => i)
                 if (_list.length) {
-                    await fetch.post('/set/photo/add', { list: _list })
-                    this.triggerEvent('update', { disabled: false })
+                    const { success } = await fetch.post('/set/photo/add', { list: _list })
+                    if (success) {
+                        const title = `成功上传${_list.length}照片`
+                        wx.showToast({ title, icon: 'none', duration: 2000 })
+                        this.triggerEvent('update')
+                    } else {
+                        wx.showToast({ title: '上传失败', icon: 'none', duration: 2000 })
+                    }
                 }
             }
         }
@@ -179,7 +185,6 @@ createComponent({
             width: 100%;
             height: 100%;
             background: rgba(#000, 0.6);
-            transition: height linear .3s;
         }
         .exists{
             width: 100%;
