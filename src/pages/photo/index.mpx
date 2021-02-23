@@ -1,8 +1,8 @@
 <template>
     <view class="page">
-<!--        <include src="../../components/template/header.wxml"></include>-->
+        <include src="../../components/template/header.wxml"></include>
         <view class="container">
-<!--            <petal class="petal-bg"></petal>-->
+            <petal class="petal-bg"></petal>
             <waterfall imgList="{{imgList}}" localList="{{localList}}" loading="{{loading}}" latest="{{latest}}" class="wrap" bind:refresh="refreshList"></waterfall>
             <view wx:if="{{imgList.length && !latest}}" class="spin-loading"></view>
         </view>
@@ -24,24 +24,30 @@ createPage({
         latest: false,
         offset: 0
     },
+    computed: {
+        ...store.mapState([
+            'loginState'
+        ])
+    },
     methods: {
         updateList () {
             this.fetchImgList()
         },
         refreshList () {
-            this.fetchImgList(this.offset)
+            this.imgList = []
+            this.fetchImgList()
         },
         eventUpload ({ detail }) {
             const { disabled = false } = detail
             console.info('eventUpload: ', detail)
             this.btnDisabled = disabled
         },
-        async fetchImgList (offsetVal) {
+        async fetchImgList () {
             this.loading = true
             const { imgList, limit } = this
             const len = imgList.length
-            this.offset = offsetVal || len >= limit ? len : null
-            const { success, data } = await fetch.get('/get/photo/list', { limit, offset: this.offset })
+            const offset = len >= limit - 1 ? len : null
+            const { success, data } = await fetch.get('/get/photo/list', { limit, offset })
             if (success) {
                 this.latest = data.length < limit
                 const list = this.latest ? data : data.slice(0, limit - 1)
@@ -58,10 +64,8 @@ createPage({
     },
     // onReady () {
     onShow () {
-        if (!this.imgList.length) {
-            this.fetchImgList()
-            store.dispatch('getPhotoToken')
-        }
+        // if (!this.imgList.length) {
+        // }
     },
     onPullDownRefresh () {
         this.fetchImgList()
@@ -71,6 +75,17 @@ createPage({
         console.info('onReachBottom: ', ...arg)
         if (!this.latest) {
             this.fetchImgList()
+        }
+    },
+    watch: {
+        loginState: {
+            handler (state) {
+                if (state) {
+                    this.fetchImgList()
+                    store.dispatch('getPhotoToken')
+                }
+            },
+            immediate: true
         }
     }
 })

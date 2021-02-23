@@ -41,7 +41,7 @@
                 <image class="photograph {{isLoadingImg ? 'load' : ''}}" mode="widthFix" src="{{layerImg}}" bindload="loadImg"></image>
             </view>
         </view>
-        <view wx:if="{{!loading}}" class="btn-group">
+        <view wx:if="{{imgList.length && !loading}}" class="btn-group">
             <button wx:if="{{isEdit}}" class="btn del" bindtap="eventDel" disabled="{{!editList.length}}">
                 删除 ({{editList.length}})
             </button>
@@ -154,7 +154,6 @@ createComponent({
                 const { height = 0, width = 0 } = item
                 const h = Math.ceil(height / width * 100)
                 const fIndex = this.column.findIndex(i => i === Math.min(...this.column))
-                console.info(h, Math.min(...this.column), fIndex)
                 const index = fIndex >= 0 ? fIndex : 1
                 this.column[index] += h
                 so[index] = so[index] || []

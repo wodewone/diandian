@@ -3,6 +3,7 @@ import fetch from '@/plugins/fetch'
 
 export default createStore({
     state: {
+        loginState: null,
         photoData: {
             max: 0,
             url: null,
@@ -11,6 +12,9 @@ export default createStore({
         }
     },
     mutations: {
+        setLoginState (s, state) {
+            s.loginState = state
+        },
         setPhotoData (s, data) {
             s.photoData = data
         }
