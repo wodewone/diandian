@@ -43,6 +43,9 @@ createPage({
             this.btnDisabled = disabled
         },
         async fetchImgList () {
+            if (this.loading) {
+                return false
+            }
             this.loading = true
             const { imgList, limit } = this
             const len = imgList.length
