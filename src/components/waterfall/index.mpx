@@ -25,7 +25,7 @@
                         </label>
                         <image class="album" src="{{img.src}}" mode="widthFix" lazy-load="true"></image>
                     </view>
-                    <view wx:if="{{latest && item.length > 3}}" class="item end">
+                    <view wx:if="{{latest && item.length > 5}}" class="item end">
                         <text class="text">{{endSay[index]}}</text>
                     </view>
                 </view>
@@ -155,7 +155,7 @@ createComponent({
                 const h = Math.ceil(height / width * 100)
                 const fIndex = this.column.findIndex(i => i === Math.min(...this.column))
                 const index = fIndex >= 0 ? fIndex : 1
-                this.column[index] += h
+                this.column[index] += (h > 300 ? 300 : h)
                 so[index] = so[index] || []
                 so[index].push(item)
                 return so

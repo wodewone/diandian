@@ -33,8 +33,8 @@
                 'userInfo'
             ])
         },
-        async onLoad (...arg) {
-            console.info(1911, arg)
+        async onLoad (options) {
+            console.info('share onLoad: ', options)
             const userInfo = app.globalData.userInfo
             if (userInfo) {
                 await store.commit('setUserInfo', userInfo)
@@ -46,12 +46,15 @@
             }
         },
         methods: {
+            setShareId ({ id }) {
+                id && store.commit('setShareId', id)
+            },
             async getUserInfo (e) {
                 console.log('[log] getUserInfo: ', e)
                 const { detail: { userInfo } } = e
                 if (userInfo) {
                     app.globalData.userInfo = userInfo
-                    await store.commit('setUserInfo', userInfo)
+                    store.commit('setUserInfo', userInfo)
                 } else {
                     console.error('[log] getUserInfo: ', e.detail)
                 }
@@ -60,8 +63,9 @@
         watch: {
             userInfo: {
                 handler ({ nickName }) {
+                    console.info(121111, nickName)
                     nickName && fetch.wx('switchTab', {
-                        url: 'story/index'
+                        url: '/pages/story/index'
                     })
                 },
                 deep: true,

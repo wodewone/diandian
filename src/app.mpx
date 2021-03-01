@@ -39,9 +39,10 @@
                 const userData = await fetch.wx('getUserInfo')
                 console.info('wx.getUserInfo ', userData)
                 const { userInfo } = userData
+                this.globalData.userInfo = userInfo
+                store.commit('setUserInfo', userInfo)
                 // const { userInfo, encryptedData, iv } = userData
                 // 可以将 res 发送给后台解码出 unionId
-                this.globalData.userInfo = userInfo
                 await fetch.post('/set/user', userInfo)
 
                 // const sessionKey = wx.getStorageSync('sessionKey')
@@ -49,9 +50,11 @@
 
                 // 由于 getUserInfo 是网络请求，可能会在 Page.onLoad 之后才返回
                 // 所以此处加入 callback 以防止这种情况
-                if (this.userInfoReadyCallback) {
-                    this.userInfoReadyCallback(userData)
-                }
+                // if (this.userInfoReadyCallback) {
+                //     this.userInfoReadyCallback(userData)
+                // }
+            } else {
+                store.commit('setUserInfo', {})
             }
         },
         async onLaunch () {
@@ -149,8 +152,9 @@
 <script type="application/json">
     {
         "pages": [
-            "./pages/photo/index",
-            "./pages/story/index"
+            "./pages/share/index",
+            "./pages/story/index",
+            "./pages/photo/index"
         ],
         "tabBar": {
             "list": [

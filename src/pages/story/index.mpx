@@ -1,23 +1,10 @@
 <template>
-    <view class="page {{loading ? 'no-login' : ''}}">
+    <view class="page">
         <view class="page-header" wx:style="{{headerStyle}}">
             <view class="header-inner"></view>
         </view>
         <view class="container">
-            <view class="login-layer" wx:if="{{!hasUserInfo && canIUse}}">
-                <mp-loading wx:if="{{loading}}" type="circle" class="chart-loading"/>
-                <block wx:else>
-                    <view class="card">
-                        <view class="frame-box">
-                            <view class="frame-3"></view>
-                            <view class="frame-1"></view>
-                            <view class="frame-2"></view>
-                        </view>
-                    </view>
-                    <button open-type="getUserInfo" bindgetuserinfo="getUserInfo">登录发信息</button>
-                </block>
-            </view>
-            <view wx:if="{{hasUserInfo}}">
+            <view>
                 <view class="first-page">
                     <view class="content">
                         <view class="inner">
@@ -52,18 +39,19 @@
 
 <script>
     import { createPage } from '@mpxjs/core'
+    import store from '@/store'
 
-    const app = getApp()
     createPage({
         data: {
             pageHeight: null,
             headerHeight: null,
-            loading: true,
-            userInfo: {},
-            hasUserInfo: false,
             showCover: false,
-            canIUse: wx.canIUse('button.open-type.getUserInfo'),
             headerStyle: { 'transform': `translateY(-100%)` }
+        },
+        computed: {
+            ...store.mapState([
+                'userInfo'
+            ])
         },
         methods: {
             pageScroll ({ detail: { scrollTop } }) {
@@ -79,55 +67,10 @@
                     this.showCover = true
                 }
                 this.headerStyle.transform = `translateY(-${100 - percent}%)`
-            },
-            getUserInfo (e) {
-                console.log('[log] getUserInfo: ', e)
-                const { detail: { userInfo } } = e
-                if (userInfo) {
-                    app.globalData.userInfo = userInfo
-                    this.setData({
-                        userInfo,
-                        hasUserInfo: true
-                    })
-                } else {
-                    console.error('[log] getUserInfo: ', e.detail)
-                }
             }
         },
         onPageScroll (data) {
             this.pageScroll({ detail: data })
-        },
-        onLoad () {
-            if (app.globalData.userInfo) {
-                this.setData({
-                    userInfo: app.globalData.userInfo,
-                    hasUserInfo: true,
-                    loading: false
-                })
-            } else if (this.data.canIUse) {
-                this.loading = false
-                // 由于 getUserInfo 是网络请求，可能会在 Page.onLoad 之后才返回
-                // 所以此处加入 callback 以防止这种情况
-                app.userInfoReadyCallback = ({ userInfo }) => {
-                    app.globalData.userInfo = userInfo
-                    this.setData({
-                        userInfo,
-                        hasUserInfo: true
-                    })
-                }
-            } else {
-                // 在没有 open-type=getUserInfo 版本的兼容处理
-                wx.getUserInfo({
-                    success: ({ userInfo }) => {
-                        app.globalData.userInfo = userInfo
-                        this.setData({
-                            userInfo,
-                            loading: false,
-                            hasUserInfo: true
-                        })
-                    }
-                })
-            }
         },
         onReady () {
             wx.createSelectorQuery().select('.page').boundingClientRect().exec(([{ height }]) => {
@@ -143,27 +86,10 @@
 <style lang="scss">
     .page {
         height: 100vh;
-
-        &.no-login {
-            overflow: hidden;
-        }
     }
 
     .container {
         padding-top: 0;
-    }
-
-    .login-layer {
-        top: 0;
-        left: 0;
-        z-index: 9;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        position: fixed;
-        align-items: center;
-        justify-content: center;
-        background: rgba(#eee, .99);
     }
 
     .first-page {
@@ -258,113 +184,6 @@
             }
         }
     }
-
-    .card {
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        background: #fff;
-
-        .frame-box {
-            top: 0;
-            left: 0;
-            z-index: 2;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            position: absolute;
-            pointer-events: none;
-
-            .frame-1,
-            .frame-2,
-            .frame-3 {
-                width: 0;
-                height: 0;
-
-                &:before,
-                &:after {
-                    content: '';
-                    width: 3px;
-                    height: 88%;
-                    bottom: -10%;
-                    position: absolute;
-                    display: inline-block;
-                    background: linear-gradient(180deg, #f2e483, #f2e483, #996a17);
-                }
-
-                &:before {
-                    left: 8vw;
-                }
-
-                &:after {
-                    right: 8vw;
-                }
-            }
-
-            .frame-1 {
-                &:before {
-                    bottom: 2vh;
-                    height: 35%;
-                    transform: rotate(-17deg);
-                }
-
-                &:after {
-                    right: 22vw;
-                    height: 47vw;
-                    bottom: -18vw;
-                    transform: rotate(253deg);
-                }
-            }
-
-            .frame-2 {
-                &:before,
-                &:after {
-                    top: -10%;
-                    bottom: auto;
-                    background: linear-gradient(0, #f2e483, #f2e483, #996a17);
-                }
-
-                &:before {
-                    top: 0;
-                    bottom: auto;
-                    height: 100%;
-                    transform: rotate(6deg);
-                    background: linear-gradient(0, #996a17, #f2e483, #f2e483, #996a17);
-                }
-
-                &:after {
-                    top: 0;
-                    right: 12%;
-                    height: 100%;
-                    transform: rotate(-3deg);
-                }
-            }
-
-            .frame-3 {
-                &:before,
-                &:after {
-                    background: linear-gradient(0, #f2e483, #996a17);
-                }
-
-                &:before {
-                    height: 11%;
-                    bottom: -28px;
-                    transform: rotate(-106deg);
-                }
-
-                &:after {
-                    height: 60vw;
-                    right: 38vw;
-                    bottom: 2vh;
-                    transform: rotate(125deg);
-
-                    display: none;
-                }
-            }
-        }
-    }
 </style>
 
 <script type="application/json">
@@ -373,6 +192,7 @@
             "cover-list": "../../components/first/CoverList",
             "video-danmu": "../../components/first/VideoDanmu",
             "index-map": "../../components/first/IndexMap",
+
             "mp-loading": "weui-miniprogram/loading/loading"
         },
         "navigationBarTitleText": "Welcome!"

@@ -13,7 +13,7 @@
 <script>
 import { createPage } from '@mpxjs/core'
 import store from '@/store'
-import fetch from '../../plugins/fetch'
+import fetch from '@/plugins/fetch'
 
 createPage({
     data: {
