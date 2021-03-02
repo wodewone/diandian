@@ -201,6 +201,5 @@
 
             "mp-loading": "weui-miniprogram/loading/loading"
         },
-        "navigationBarTitleText": "Welcome!"
     }
 </script>

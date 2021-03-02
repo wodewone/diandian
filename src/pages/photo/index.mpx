@@ -2,7 +2,7 @@
     <view class="page">
         <include src="../../components/template/header.wxml"></include>
         <view class="container">
-            <petal class="petal-bg"></petal>
+            <petal wx:if="{{imgList.length}}" class="petal-bg"/>
             <waterfall
                 imgList="{{imgList}}"
                 localList="{{localList}}"
@@ -22,24 +22,28 @@
 import { createPage } from '@mpxjs/core'
 import store from '@/store'
 import fetch from '@/plugins/fetch'
+import { obj2str } from '@/plugins/utils'
 
 createPage({
     data: {
         limit: 21,
         loading: true,
-        updating: false,
         imgList: [],
         localList: [],
         latest: false,
         offset: 0,
-        shareImg: null
+        shareImg: null,
+
+        urlParams: null
     },
     computed: {
         ...store.mapState([
+            'userInfo',
             'loginState'
         ])
     },
     methods: {
+        obj2str,
         updateList () {
             this.fetchImgList()
         },
@@ -57,8 +61,8 @@ createPage({
             console.info('eventUpload: ', detail)
             this.btnDisabled = disabled
         },
-        async fetchImgList () {
-            if (this.updating) {
+        async fetchImgList (force) {
+            if (this.loading && !force) {
                 return false
             }
             this.loading = true
@@ -77,7 +81,6 @@ createPage({
                 })
                 this.imgList = this.imgList.concat(newData)
             }
-            this.updating = false
             this.loading = false
         }
     },
@@ -89,9 +92,8 @@ createPage({
         }
     },
     // onReady () {
-    onShow () {
-        // if (!this.imgList.length) {
-        // }
+    onLoad (options) {
+        this.urlParams = options
     },
     onPullDownRefresh () {
         this.fetchImgList()
@@ -99,16 +101,20 @@ createPage({
     },
     onReachBottom (...arg) {
         console.info('onReachBottom: ', ...arg)
-        if (!this.latest && !this.updating && !this.loading) {
-            this.updating = true
+        if (!this.latest && !this.loading) {
             this.fetchImgList()
         }
     },
     watch: {
+        userInfo ({ loading }) {
+            if (!loading && !this.loginState) {
+                wx.navigateTo(this.obj2str(this.urlParams))
+            }
+        },
         loginState: {
             handler (state) {
                 if (state) {
-                    this.fetchImgList()
+                    this.fetchImgList(true)
                     store.dispatch('getPhotoToken')
                 }
             },

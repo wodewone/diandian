@@ -54,6 +54,7 @@
                 const { detail: { userInfo } } = e
                 if (userInfo) {
                     app.globalData.userInfo = userInfo
+                    app.login()
                     store.commit('setUserInfo', userInfo)
                 } else {
                     console.error('[log] getUserInfo: ', e.detail)
@@ -63,9 +64,14 @@
         watch: {
             userInfo: {
                 handler ({ nickName }) {
-                    nickName && fetch.wx('switchTab', {
-                        url: '/pages/story/index'
-                    })
+                    if (nickName) {
+                        const pages = getCurrentPages()
+                        if (pages.length > 1) {
+                            wx.navigateBack()
+                        } else {
+                            fetch.wx('switchTab', { url: '/pages/story/index' })
+                        }
+                    }
                 },
                 deep: true,
                 immediate: true
@@ -207,7 +213,6 @@
     {
         "usingComponents": {
             "mp-loading": "weui-miniprogram/loading/loading"
-        },
-        "navigationBarTitleText": "Welcome!"
+        }
     }
 </script>
