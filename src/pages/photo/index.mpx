@@ -3,7 +3,15 @@
         <include src="../../components/template/header.wxml"></include>
         <view class="container">
             <petal class="petal-bg"></petal>
-            <waterfall imgList="{{imgList}}" localList="{{localList}}" loading="{{loading}}" latest="{{latest}}" class="wrap" bind:refresh="refreshList"></waterfall>
+            <waterfall
+                imgList="{{imgList}}"
+                localList="{{localList}}"
+                loading="{{loading}}"
+                latest="{{latest}}"
+                class="wrap"
+                bind:refresh="refreshList"
+                bind:share="setShareImg"
+            />
             <view wx:if="{{imgList.length && !latest}}" class="spin-loading"></view>
         </view>
         <uploadImg imgList="{{imgList}}" bind:update="updateList"></uploadImg>
@@ -19,10 +27,12 @@ createPage({
     data: {
         limit: 21,
         loading: true,
+        updating: false,
         imgList: [],
         localList: [],
         latest: false,
-        offset: 0
+        offset: 0,
+        shareImg: null
     },
     computed: {
         ...store.mapState([
@@ -32,6 +42,11 @@ createPage({
     methods: {
         updateList () {
             this.fetchImgList()
+        },
+        setShareImg (v) {
+            if (v) {
+                this.shareImg = v
+            }
         },
         refreshList () {
             this.imgList = []
@@ -43,7 +58,7 @@ createPage({
             this.btnDisabled = disabled
         },
         async fetchImgList () {
-            if (this.loading) {
+            if (this.updating) {
                 return false
             }
             this.loading = true
@@ -62,7 +77,15 @@ createPage({
                 })
                 this.imgList = this.imgList.concat(newData)
             }
+            this.updating = false
             this.loading = false
+        }
+    },
+    onShareAppMessage () {
+        return {
+            title: '山有木兮木有枝',
+            path: '/pages/photo/index',
+            imageUrl: this.shareImg
         }
     },
     // onReady () {
@@ -76,7 +99,8 @@ createPage({
     },
     onReachBottom (...arg) {
         console.info('onReachBottom: ', ...arg)
-        if (!this.latest) {
+        if (!this.latest && !this.updating && !this.loading) {
+            this.updating = true
             this.fetchImgList()
         }
     },

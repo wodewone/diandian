@@ -79,6 +79,12 @@
             wx.createSelectorQuery().select('.page-header').boundingClientRect().exec(([{ height }]) => {
                 this.headerHeight = height
             })
+        },
+        onShareAppMessage () {
+            return {
+                title: '山有木兮木有枝',
+                path: '/pages/story/index'
+            }
         }
     })
 </script>

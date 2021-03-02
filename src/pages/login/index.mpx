@@ -63,7 +63,6 @@
         watch: {
             userInfo: {
                 handler ({ nickName }) {
-                    console.info(121111, nickName)
                     nickName && fetch.wx('switchTab', {
                         url: '/pages/story/index'
                     })

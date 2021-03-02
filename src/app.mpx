@@ -17,7 +17,8 @@
             const { code } = res
             // 发送 res.code 到后台换取 openId, sessionKey, unionId
             const { success, data: { openid, unionid, session_key: sessionKey } } = await fetch.post('/post/wxlogin', { code })
-            const id = unionid || openid
+            const id = openid || unionid
+            store.commit('setUserOpenId', openid)
             console.info('fetch.wxlogin: ', id)
             if (success) {
                 const { success, data, msg } = await fetch.get('/get/token', { id })
@@ -152,7 +153,7 @@
 <script type="application/json">
     {
         "pages": [
-            "./pages/share/index",
+            "./pages/login/index",
             "./pages/story/index",
             "./pages/photo/index"
         ],

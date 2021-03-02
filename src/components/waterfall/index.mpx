@@ -34,14 +34,14 @@
         <view
             bindtap="closeLayer"
             class="layer"
-            hidden="{{!layerShow}}"
+            hidden="{{!layerImg}}"
             wx:if="layerImg"
         >
             <view class="inner" wx:style="{{layerStyle}}">
                 <image class="photograph {{isLoadingImg ? 'load' : ''}}" mode="widthFix" src="{{layerImg}}" bindload="loadImg"></image>
             </view>
         </view>
-        <view wx:if="{{imgList.length && !loading}}" class="btn-group">
+        <view wx:if="{{checkAdmin && imgList.length && !loading}}" class="btn-group">
             <button wx:if="{{isEdit}}" class="btn del" bindtap="eventDel" disabled="{{!editList.length}}">
                 删除 ({{editList.length}})
             </button>
@@ -74,7 +74,6 @@ createComponent({
         }
     },
     data: {
-        layerShow: false,
         layerImg: null,
         layerBack: null,
         endSay: ['点击可', '编写任', '意内容'],
@@ -83,6 +82,7 @@ createComponent({
         showList: [],
         columnNum: 2,
         column: [],
+        errIndex: 0,
 
         isEdit: false,
         editList: []
@@ -94,6 +94,9 @@ createComponent({
     computed: {
         ...store.mapState([
             'photoData'
+        ]),
+        ...store.mapGetters([
+            'checkAdmin'
         ]),
         maxNum () {
             return this.photoData.max
@@ -138,13 +141,12 @@ createComponent({
                 fIndex > -1 ? this.editList.splice(fIndex, 1) : this.editList.push(hash)
             } else {
                 this.isLoadingImg = true
-                this.layerShow = !this.layerShow
                 this.layerBack = src
                 this.layerImg = url + '?imageView2/2/w/750'
             }
         },
         closeLayer () {
-            this.layerShow = !this.layerShow
+            this.layerImg = null
         },
         renderData (list) {
             if (!list || !list.length) {
@@ -154,8 +156,11 @@ createComponent({
                 const { height = 0, width = 0 } = item
                 const h = Math.ceil(height / width * 100)
                 const fIndex = this.column.findIndex(i => i === Math.min(...this.column))
-                const index = fIndex >= 0 ? fIndex : 1
-                this.column[index] += (h > 300 ? 300 : h)
+                const index = isNaN(h) ? this.errIndex++ : fIndex >= 0 ? fIndex : 1
+                this.errIndex = index > this.column.length ? 0 : index
+                if (h) {
+                    this.column[index] += h
+                }
                 so[index] = so[index] || []
                 so[index].push(item)
                 return so
@@ -169,6 +174,9 @@ createComponent({
     watch: {
         imgList (v) {
             v && v.length && this.renderData(v)
+        },
+        layerImg (v) {
+            this.triggerEvent('share', v)
         }
     }
 })
@@ -343,7 +351,7 @@ createComponent({
         &.del {
             left: 2vw;
             right: auto;
-            color: #fa5151;
+            background-color: #fa5151;
         }
 
         &.cancel {

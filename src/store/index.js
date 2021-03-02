@@ -3,6 +3,7 @@ import fetch from '@/plugins/fetch'
 
 export default createStore({
     state: {
+        openId: null,
         shareId: null,
         userInfo: {
             loading: true
@@ -16,6 +17,9 @@ export default createStore({
         }
     },
     mutations: {
+        setUserOpenId (s, data) {
+            s.openId = data
+        },
         setShareId (s, data) {
             s.shareId = data
         },
@@ -37,6 +41,12 @@ export default createStore({
             } else {
                 msg && wx.showToast({ title: msg, icon: 'none', duration: 2000 })
             }
+        }
+    },
+    getters: {
+        checkAdmin (s) {
+            const { openId, shareId } = s
+            return shareId ? openId === shareId : true
         }
     }
 })
