@@ -46,6 +46,9 @@ const _http = (method, api, data) => {
 const _wx = (method, arg) => {
     return new Promise((resolve, reject) => {
         const options = typeof arg === 'object' ? arg : {}
+        if (!wx[method]) {
+            return reject(new Error(`${method} not support!`))
+        }
         wx[method]({
             ...options,
             success (res) {

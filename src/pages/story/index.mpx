@@ -5,10 +5,10 @@
         </view>
         <view class="container">
             <view>
-                <view class="first-page">
+                <view class="first-page {{beginClass}}">
                     <view class="content">
                         <view class="inner">
-<!--                            <text>欢迎大家于2020年10月1日光临婚礼现场，届时将有更多惊喜等待大家</text>-->
+                            <text class="welcome">《欢迎来到我们的故事屋》</text>
                         </view>
                     </view>
                 </view>
@@ -19,7 +19,7 @@
                             <cover-list userInfo="{{userInfo}}" showCover="{{showCover}}"></cover-list>
                         </view>
                     </view>
-                    <view class="line">
+                    <view wx:if="{{true}}" class="line">
                         <view class="label">我们的故事</view>
                         <view class="body">
                             <video-danmu></video-danmu>
@@ -46,6 +46,7 @@
             pageHeight: null,
             headerHeight: null,
             showCover: false,
+            beginClass: '',
             headerStyle: { 'transform': `translateY(-100%)` }
         },
         computed: {
@@ -63,7 +64,7 @@
                 } else {
                     percent = Math.max(percent, -100)
                 }
-                if (scrollTop > pageHeight / 3) {
+                if (scrollTop > pageHeight / 5) {
                     this.showCover = true
                 }
                 this.headerStyle.transform = `translateY(-${100 - percent}%)`
@@ -79,6 +80,10 @@
             wx.createSelectorQuery().select('.page-header').boundingClientRect().exec(([{ height }]) => {
                 this.headerHeight = height
             })
+            setTimeout(() => {
+
+            }, 1000)
+            this.beginClass = 'begin'
         },
         onShareAppMessage () {
             return {
@@ -117,6 +122,7 @@
 
         .content {
             z-index: 1;
+            width: 100%;
             height: 100%;
             position: relative;
 
@@ -130,43 +136,46 @@
                 position: absolute;
             }
 
-            &:before {
-                //background: url("../../images/card-invite-head.png") no-repeat top center/100% auto;
-            }
-
-            &:after {
-                //background: url("../../images/card-invite-foot.png") no-repeat bottom center/100% auto;
-            }
-
             .inner {
-                width: 80%;
                 left: 10%;
+                width: 80%;
                 bottom: 50px;
-                padding: 10px;
-                overflow: hidden;
-                border-radius: 20px;
+                display: flex;
                 position: absolute;
+                justify-content: center;
+            }
+            .welcome {
+                opacity: 0;
+                padding: 10px;
+                color: #ff842e;
+                font-size: 16px;
+                text-align: center;
+                border-radius: 20px;
+                background: rgba(#000, 0.66);
+                text-shadow: 0 0 2px #e03a0d;
+                animation: begin-ani ease-in .6s 1s;
                 box-shadow: 0 0 0 1px rgba(#fff, .3) inset, 0 2px 5px rgba(0, 0, 0, 0.6);
+            }
+        }
 
-                text {
-                    color: #ff8dac;
-                    font-size: 16px;
-                    text-align: center;
-                    text-shadow: 0 0 2px #e03a0d;
-                }
-
-                &:before {
-                    content: '';
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    z-index: -1;
-                    margin: -10px;
-                    position: absolute;
-                    filter: blur(10px);
-                    background: url("../../images/card-invite-back.jpg") no-repeat center/cover fixed;
-                }
+        &.begin {
+            &:after {
+                content: '';
+                opacity: 0;
+                left: 50%;
+                width: 6px;
+                height: 6px;
+                bottom: 10px;
+                position: absolute;
+                border: 2px solid transparent;
+                border-top-color: #f5f4f1;
+                border-right-color: #f5f4f1;
+                box-shadow: 1px -1px 2px rgba(#000, 0.8);
+                transform: rotate(135deg) translateX(-50%);
+                animation: arrow-ani ease-in-out 1s infinite 2s;
+            }
+            .welcome {
+                opacity: 1;
             }
         }
     }
@@ -188,6 +197,32 @@
 
             .body {
             }
+        }
+    }
+
+    @keyframes begin-ani {
+        0% {
+            opacity: 0;
+            transform: translateY(20%);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes arrow-ani {
+        0% {
+            opacity: 1;
+            bottom: 20px;
+        }
+        50% {
+            opacity: 1;
+            bottom: 15px;
+        }
+        100% {
+            opacity: 1;
+            bottom: 20px
         }
     }
 </style>

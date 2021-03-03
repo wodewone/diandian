@@ -36,15 +36,12 @@
             const { authSetting } = await fetch.wx('getSetting')
             console.info('wx.getSetting ', authSetting)
             if (authSetting['scope.userInfo']) {
+                const { success, data } = await fetch.get('/get/user')
+                success && store.commit('setUserInfo', data)
                 // 已经授权，可以直接调用 getUserInfo 获取头像昵称，不会弹框
-                const userData = await fetch.wx('getUserInfo')
-                console.info('wx.getUserInfo ', userData)
-                const { userInfo } = userData
-                this.globalData.userInfo = userInfo
-                store.commit('setUserInfo', userInfo)
+                // const userData = await fetch.wx('getUserProfile')
                 // const { userInfo, encryptedData, iv } = userData
                 // 可以将 res 发送给后台解码出 unionId
-                await fetch.post('/set/user', userInfo)
 
                 // const sessionKey = wx.getStorageSync('sessionKey')
                 // await fetch.post('/post/userinfo', { sessionKey, encryptedData, iv })
@@ -56,6 +53,16 @@
                 // }
             } else {
                 store.commit('setUserInfo', {})
+                // wx.getUserProfile({
+                //     desc: '用于展示头像昵称信息',
+                //     success (userData) {
+                //         console.info('wx.getUserProfile ', userData)
+                //         const { userInfo } = userData
+                //         this.globalData.userInfo = userInfo
+                //         store.commit('setUserInfo', userInfo)
+                //         fetch.post('/set/user', userInfo)
+                //     }
+                // })
             }
         },
         async onLaunch () {
@@ -97,10 +104,6 @@
         background: #f1f1f1 url("./images/body-bg.png");
     }
 
-    view {
-        width: 100%;
-    }
-
     /*.page{*/
     /*    display: flex;*/
     /*    flex-direction: column;*/
@@ -119,6 +122,7 @@
         left: 0;
         z-index: 5;
         height: 90px;
+        width: 100%;
         position: fixed;
         background: linear-gradient(0, transparent, #e8ebec, #e8ebec);
 
@@ -153,9 +157,9 @@
 <script type="application/json">
     {
         "pages": [
-            "./pages/login/index",
             "./pages/story/index",
-            "./pages/photo/index"
+            "./pages/photo/index",
+            "./pages/login/index"
         ],
         "tabBar": {
             "list": [

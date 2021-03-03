@@ -11,7 +11,7 @@
                             <view class="frame-2"></view>
                         </view>
                     </view>
-                    <button open-type="getUserInfo" bindgetuserinfo="getUserInfo">登录发信息</button>
+                    <button open-type="getUserProfile" bindgetuserinfo="getUserInfo">登录发信息</button>
                 </block>
             </view>
         </view>
@@ -26,28 +26,36 @@
     const app = getApp()
     createPage({
         data: {
-            canIUse: wx.canIUse('button.open-type.getUserInfo')
+            canIUse: wx.canIUse('button.open-type.getUserProfile')
         },
         computed: {
             ...store.mapState([
                 'userInfo'
             ])
         },
-        async onLoad (options) {
+        onLoad (options) {
             console.info('share onLoad: ', options)
-            const userInfo = app.globalData.userInfo
-            if (userInfo) {
-                await store.commit('setUserInfo', userInfo)
-            } else {
-                // 在没有 open-type=getUserInfo 版本的兼容处理
-                const { userInfo } = await fetch.wx('getUserInfo')
-                app.globalData.userInfo = userInfo
-                await store.commit('setUserInfo', userInfo)
-            }
         },
         methods: {
             setShareId ({ id }) {
                 id && store.commit('setShareId', id)
+            },
+            async initUserInfo () {
+                const userInfo = app.globalData.userInfo
+                if (userInfo) {
+                    await store.commit('setUserInfo', userInfo)
+                } else {
+                    // 在没有 open-type=getUserInfo 版本的兼容处理
+                    // const { userInfo } = await fetch.wx('getUserProfile')
+                    wx.getUserProfile({
+                        desc: '用于展示头像昵称信息',
+                        success ({ userInfo }) {
+                            console.info(2222, userInfo)
+                            app.globalData.userInfo = userInfo
+                            store.commit('setUserInfo', userInfo)
+                        }
+                    })
+                }
             },
             async getUserInfo (e) {
                 console.log('[log] getUserInfo: ', e)
@@ -63,8 +71,9 @@
         },
         watch: {
             userInfo: {
-                handler ({ nickName }) {
-                    if (nickName) {
+                handler (res) {
+                    console.info(22191, res)
+                    if (res.nickName) {
                         const pages = getCurrentPages()
                         if (pages.length > 1) {
                             wx.navigateBack()

@@ -8,3 +8,10 @@ export const obj2str = (obj) => {
     }
     return str
 }
+
+export const toLogin = (payload) => {
+    return wx.navigateTo({
+        url: '/pages/login/index',
+        ...payload
+    })
+}

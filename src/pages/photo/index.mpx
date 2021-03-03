@@ -22,7 +22,6 @@
 import { createPage } from '@mpxjs/core'
 import store from '@/store'
 import fetch from '@/plugins/fetch'
-import { obj2str } from '@/plugins/utils'
 
 createPage({
     data: {
@@ -32,9 +31,7 @@ createPage({
         localList: [],
         latest: false,
         offset: 0,
-        shareImg: null,
-
-        urlParams: null
+        shareImg: null
     },
     computed: {
         ...store.mapState([
@@ -43,7 +40,6 @@ createPage({
         ])
     },
     methods: {
-        obj2str,
         updateList () {
             this.fetchImgList()
         },
@@ -93,7 +89,7 @@ createPage({
     },
     // onReady () {
     onLoad (options) {
-        this.urlParams = options
+        console.info(9221, options)
     },
     onPullDownRefresh () {
         this.fetchImgList()

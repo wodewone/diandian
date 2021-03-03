@@ -11,7 +11,7 @@
                             <view class="frame-2"></view>
                         </view>
                     </view>
-                    <button open-type="getUserInfo" bindgetuserinfo="getUserInfo">登录发信息</button>
+                    <button open-type="getUserProfile" bindgetuserinfo="getUserInfo">登录发信息</button>
                 </block>
             </view>
         </view>
@@ -26,7 +26,7 @@
     const app = getApp()
     createPage({
         data: {
-            canIUse: wx.canIUse('button.open-type.getUserInfo')
+            canIUse: wx.canIUse('button.open-type.getUserProfile')
         },
         computed: {
             ...store.mapState([
@@ -40,7 +40,7 @@
                 await store.commit('setUserInfo', userInfo)
             } else {
                 // 在没有 open-type=getUserInfo 版本的兼容处理
-                const { userInfo } = await fetch.wx('getUserInfo')
+                const { userInfo } = await fetch.wx('getUserProfile')
                 app.globalData.userInfo = userInfo
                 await store.commit('setUserInfo', userInfo)
             }

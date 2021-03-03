@@ -15,6 +15,7 @@ module.exports = {
         wx: true,
         getApp: true,
         App: true,
+        getCurrentPages: true,
         __mpx_mode__: true
     },
     rules: {
