@@ -153,7 +153,9 @@
                 border-radius: 20px;
                 background: rgba(#000, 0.66);
                 text-shadow: 0 0 2px #e03a0d;
-                animation: begin-ani ease-in .6s 1s;
+                /*animation: begin-ani ease-in .6s 1s;*/
+                transform: translateY(30%);
+                transition: all ease-in 1s .5s;
                 box-shadow: 0 0 0 1px rgba(#fff, .3) inset, 0 2px 5px rgba(0, 0, 0, 0.6);
             }
         }
@@ -176,6 +178,7 @@
             }
             .welcome {
                 opacity: 1;
+                transform: translateY(0);
             }
         }
     }

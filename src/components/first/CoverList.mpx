@@ -40,6 +40,7 @@
         },
         computed: {
             ...store.mapState([
+                'shareId',
                 'loginState'
             ])
         },
@@ -79,7 +80,8 @@
                 }
                 this.disabled = true
                 const blessing = this.blessValue
-                const { success, data, msg } = await fetch.post('/set/greeting', { blessing })
+                const userId = this.shareId
+                const { success, data, msg } = await fetch.post('/set/greeting', { userId, blessing })
                 this.disabled = false
                 if (success) {
                     this.blessValue = null
