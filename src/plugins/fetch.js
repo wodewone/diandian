@@ -1,15 +1,11 @@
 // const baseUrl = 'http://localhost:3001/point/v1'
 const baseUrl = 'https://www.wodewone.com/point/v1'
 
-let header = null
-
 const _http = (method, api, data) => {
     return new Promise((resolve, reject) => {
-        if (!header) {
-            header = {
-                'Content-type': 'application/json',
-                'Authorization': wx.getStorageSync('token')
-            }
+        const header = {
+            'Content-type': 'application/json',
+            'Authorization': wx.getStorageSync('token')
         }
         if (typeof data === 'object') {
             for (const key in data) {

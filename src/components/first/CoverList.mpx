@@ -14,7 +14,7 @@
         </view>
         <view class="blessing">
             <open-data class="user-avatar" type="userAvatarUrl"></open-data>
-            <input class="input" type="text" placeholder="祝福语，最多12个字" maxlength="12" wx:model="{{blessValue}}"/>
+            <input class="input" type="text" placeholder="祝福语，最多12个字" maxlength="{{textMaxLen}}" wx:model="{{blessValue}}"/>
             <button class="btn" type="primary" bindtap="eventSend" disabled="{{!blessValue || disabled}}">祝福</button>
         </view>
     </view>
@@ -42,7 +42,16 @@
             ...store.mapState([
                 'shareId',
                 'loginState'
-            ])
+            ]),
+            textMaxLen () {
+                const { blessValue } = this
+                const defaultLen = 24
+                if (!blessValue) {
+                    return defaultLen
+                }
+                const s = (blessValue.match(/[\u4e00-\u9fa5]/g) || []).length
+                return defaultLen - s
+            }
         },
         methods: {
             toLogin,
@@ -87,8 +96,8 @@
                     this.blessValue = null
                     const index = this.aniCoverList.findIndex(({ uuid }) => uuid === data.uuid)
                     ~index && this.aniCoverList.splice(index, 1)
-                    this.aniCoverList.unshift(data)
-                    this.coverEvent(0, 5000)
+                    this.aniCoverList.push(data)
+                    this.coverEvent(this.aniCoverList.length - 1, 5000)
                 } else {
                     msg && wx.showToast({ title: msg, icon: 'none', duration: 2000 })
                 }
@@ -164,6 +173,7 @@
         box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3), 0 2px 7px rgba(0, 0, 0, 0.8) inset, 0 2px 7px rgba(0, 0, 0, 0.8) inset;
 
         .spin-loading{
+            width: 100%;
             min-height: 100px;
         }
 

@@ -65,13 +65,18 @@
                 // })
             }
         },
+        getPathQuery () {
+            const { query } = wx.getLaunchOptionsSync()
+            const { shareId } = query
+            shareId && store.commit('setShareId', shareId)
+        },
         async onLaunch () {
         // async onLoad () {
             // 展示本地存储能力
-            const logs = wx.getStorageSync('logs') || []
-            logs.unshift(Date.now())
-            wx.setStorageSync('logs', logs)
-
+            // const logs = wx.getStorageSync('logs') || []
+            // logs.unshift(Date.now())
+            // wx.setStorageSync('logs', logs)
+            this.getPathQuery()
             // 登录
             await this.login()
             // 获取用户信息
@@ -85,6 +90,16 @@
         box-sizing: border-box;
     }
 
+    page {
+        min-height: 100%;
+        display: flex;
+        background: #f1f1f1 url("./images/body-bg.png");
+    }
+
+    page, view {
+        display: block;
+    }
+
     button, text, textarea, input {
         color: #3a3636;
         font-size: 14px;
@@ -96,12 +111,6 @@
     button[disabled][type] {
         color: rgba(0,0,0,0.2);
         background-color: #f2f2f2;
-    }
-
-    page {
-        min-height: 100%;
-        display: flex;
-        background: #f1f1f1 url("./images/body-bg.png");
     }
 
     /*.page{*/

@@ -4,7 +4,7 @@
             <view class="header-inner"></view>
         </view>
         <view class="container">
-            <view>
+            <view class="box-inner">
                 <view class="first-page {{beginClass}}">
                     <view class="content">
                         <view class="inner">
@@ -51,6 +51,7 @@
         },
         computed: {
             ...store.mapState([
+                'shareId',
                 'userInfo'
             ])
         },
@@ -80,15 +81,12 @@
             wx.createSelectorQuery().select('.page-header').boundingClientRect().exec(([{ height }]) => {
                 this.headerHeight = height
             })
-            setTimeout(() => {
-
-            }, 1000)
             this.beginClass = 'begin'
         },
         onShareAppMessage () {
             return {
                 title: '山有木兮木有枝',
-                path: '/pages/story/index'
+                path: `/pages/story/index?shareId=${this.shareId}`
             }
         }
     })
@@ -100,7 +98,12 @@
     }
 
     .container {
+        width: 100%;
         padding-top: 0;
+
+        .box-inner {
+            width: 100%;
+        }
     }
 
     .first-page {
